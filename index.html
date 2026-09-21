@@ -1,0 +1,2357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Polarización de una onda electromagnética · laboratorio interactivo</title>
+<meta name="description" content="Laboratorio interactivo en 3D para entender el campo eléctrico, el campo magnético y la polarización de una onda electromagnética plana.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     Consola de laboratorio. Todo el mobiliario es una sola pieza
+     moldeada: los controles sobresalen del panel y se hunden al
+     activarse, y la escena va empotrada como una pantalla.
+     El relieve nunca es el único indicador de estado: cada control
+     activo cambia además de color y enciende su testigo.
+     ============================================================ */
+  :root{
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+
+    --bg:#e7e3db;
+    --panel:#e7e3db;
+    --hi:#ffffff;
+    --lo:#bfb6a6;
+    --ink:#2c2822;
+    --muted:#6b6254;
+    --accent:#8f5506;
+    --accent-soft:#d98c12;
+    --E:#d98c12;
+    --B:#6a76e8;
+    --NEG:#1f9585;
+    --ok:#1f8a62;
+    --screen:#0f1116;
+
+    --r-xl:24px; --r-l:18px; --r-m:13px; --r-s:10px;
+
+    --up:   7px 7px 14px var(--lo), -7px -7px 14px var(--hi);
+    --up-s: 4px 4px  8px var(--lo), -4px -4px  8px var(--hi);
+    --up-xs:2px 2px  4px var(--lo), -2px -2px  4px var(--hi);
+    --in:   inset 5px 5px 10px var(--lo), inset -5px -5px 10px var(--hi);
+    --in-s: inset 3px 3px  6px var(--lo), inset -3px -3px  6px var(--hi);
+    --recess: inset 6px 6px 14px rgba(0,0,0,.42), inset -3px -3px 10px rgba(255,255,255,.55);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#23262c; --panel:#23262c; --hi:#2e323a; --lo:#171a1f;
+      --ink:#e2e5ea; --muted:#8d95a3; --accent:#f2a01e; --accent-soft:#f2a01e;
+      --recess: inset 6px 6px 14px rgba(0,0,0,.72), inset -3px -3px 10px rgba(255,255,255,.05);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#23262c; --panel:#23262c; --hi:#2e323a; --lo:#171a1f;
+    --ink:#e2e5ea; --muted:#8d95a3; --accent:#f2a01e; --accent-soft:#f2a01e;
+    --recess: inset 6px 6px 14px rgba(0,0,0,.72), inset -3px -3px 10px rgba(255,255,255,.05);
+  }
+  html{ scroll-padding-top:env(safe-area-inset-top,0px); -webkit-text-size-adjust:100%; }
+  *,*::before,*::after{ box-sizing:inherit; }
+  body{
+    margin:0; color:var(--ink);
+    background:var(--bg);
+    background-image:repeating-linear-gradient(135deg, rgba(0,0,0,.013) 0 1px, transparent 1px 4px);
+    font-family:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:15px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:1300px; margin:0 auto; padding:22px 18px 52px; }
+  .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:3px; border-radius:6px; }
+
+  /* ---------- cabecera ---------- */
+  .tools{ display:flex; gap:9px; margin-left:auto; flex-wrap:wrap; align-items:center; }
+
+  /* ---------- piezas moldeadas ---------- */
+  .btn{
+    font:600 13px/1 "Archivo",sans-serif; color:var(--ink); background:var(--panel);
+    border:0; border-radius:var(--r-m); padding:12px 15px; cursor:pointer;
+    box-shadow:var(--up-s); display:inline-flex; align-items:center; gap:8px; white-space:nowrap;
+    transition:box-shadow .16s ease, color .16s ease, transform .16s ease;
+  }
+  .btn:hover{ color:var(--accent); }
+  .btn:active{ box-shadow:var(--in-s); transform:translateY(1px); }
+  .btn.primary{ color:var(--accent); }
+  .btn.primary svg{ color:var(--accent); }
+  .btn svg{ width:15px; height:15px; flex:none; }
+  .btn.icon{ padding:12px; border-radius:50%; }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; box-shadow:var(--up-xs); }
+
+  .seg{
+    display:inline-flex; gap:4px; padding:5px; border-radius:var(--r-m);
+    background:var(--panel); box-shadow:var(--in-s);
+  }
+  .seg.segfull{ display:flex; width:100%; }
+  .seg button{
+    font:600 12.5px/1 "Archivo",sans-serif; border:0; background:transparent; color:var(--muted);
+    padding:10px 13px; border-radius:var(--r-s); cursor:pointer; white-space:nowrap;
+    transition:box-shadow .16s ease, color .16s ease;
+  }
+  .seg.segfull button{ flex:1; text-align:center; }
+  .seg button:hover{ color:var(--ink); }
+  .seg button[aria-pressed="true"]{ color:var(--accent); background:var(--panel); box-shadow:var(--up-xs); }
+
+  .card{ background:var(--panel); border-radius:var(--r-xl); box-shadow:var(--up); }
+
+  /* ---------- la pantalla, empotrada en la consola ---------- */
+  .stage-wrap{
+    position:relative; background:var(--panel); border-radius:var(--r-xl);
+    padding:13px; box-shadow:var(--up);
+  }
+  .stage-wrap::after{
+    content:""; position:absolute; inset:13px; border-radius:var(--r-l);
+    box-shadow:var(--recess); pointer-events:none; z-index:6;
+  }
+  #stage{
+    display:block; width:100%; height:clamp(320px,58vh,600px); border-radius:var(--r-l);
+    touch-action:none; cursor:grab; background:var(--screen);
+  }
+  #stage.drag{ cursor:grabbing; }
+  #stage:focus-visible{ outline:2px solid var(--accent); outline-offset:-4px; }
+
+  /* mandos sobre la pantalla: son otra cosa, así que no llevan relieve */
+  .views{ position:absolute; left:23px; top:23px; display:flex; gap:5px; flex-wrap:wrap; max-width:calc(100% - 46px); z-index:7; }
+  .glass{
+    font:500 11.5px/1 "Archivo",sans-serif; color:#b9c2d0; background:rgba(16,18,24,.72);
+    border:1px solid rgba(150,160,180,.18); border-radius:9px; padding:8px 10px; cursor:pointer;
+    -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  }
+  .glass:hover{ color:#fff; border-color:rgba(190,200,220,.45); }
+  .glass[aria-pressed="true"]{ background:rgba(217,140,18,.9); color:#1b1206; border-color:transparent; font-weight:600; }
+  .legend{
+    position:absolute; right:23px; top:23px; z-index:7; display:flex; gap:13px; font-size:11px; color:#9aa4b4;
+    background:rgba(16,18,24,.7); border-radius:9px; padding:8px 11px; pointer-events:none;
+    -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  }
+  .legend i{ display:inline-block; width:14px; height:3px; border-radius:2px; vertical-align:middle; margin-right:5px; }
+  @media (max-width:620px){ .legend{ display:none; } }
+
+  .transport{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:23px; z-index:7;
+    display:flex; align-items:center; gap:11px; padding:8px 13px;
+    background:rgba(16,18,24,.74); border-radius:999px; max-width:calc(100% - 46px);
+    -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  }
+  .transport button{ background:none; border:0; color:#cbd4e2; cursor:pointer; padding:4px; display:flex; border-radius:50%; }
+  .transport button:hover{ color:var(--accent-soft); }
+  .transport svg{ width:19px; height:19px; }
+  .transport .sp{ display:flex; align-items:center; gap:8px; color:#95a0b1; font-size:11px; }
+  .transport input[type=range]{ width:88px; }
+  @media (max-width:560px){ .transport .sp span{ display:none; } .transport input[type=range]{ width:66px; } }
+
+  .nudge{
+    position:absolute; left:50%; transform:translateX(-50%); bottom:74px; z-index:7;
+    font-size:11.5px; color:#9aa4b4; background:rgba(16,18,24,.7); border-radius:999px; padding:6px 13px;
+    pointer-events:none; transition:opacity .5s ease;
+  }
+  .tour{
+    position:absolute; left:23px; right:23px; bottom:23px; z-index:8; display:none;
+    background:rgba(13,15,20,.94); border-radius:var(--r-m); padding:15px 16px; color:#dde3ec;
+    -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px);
+  }
+  .tour.on{ display:block; }
+  .tour .step{ font-family:"Chivo Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-soft); }
+  .tour h3{ margin:5px 0 6px; font-size:16px; font-weight:600; letter-spacing:-.01em; }
+  .tour p{ margin:0; font-size:13.5px; color:#b3bdcc; max-width:72ch; }
+  .tour .nav{ display:flex; gap:7px; margin-top:13px; align-items:center; }
+  .tour .nav .grow{ flex:1; }
+  .tour .dots{ display:flex; gap:5px; }
+  .tour .dots i{ width:6px; height:6px; border-radius:50%; background:rgba(160,175,200,.3); }
+  .tour .dots i.on{ background:var(--accent-soft); }
+
+  /* ---------- lecturas ---------- */
+  .panelTitle{
+    font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 11px;
+  }
+  canvas.mini{
+    display:block; width:100%; height:auto; aspect-ratio:1/1; border-radius:var(--r-m);
+    background:var(--screen); box-shadow:var(--recess);
+  }
+  .facts dl{
+    margin:0; display:grid; grid-template-columns:auto minmax(0,1fr); gap:9px 16px; align-items:baseline;
+    background:var(--panel); box-shadow:var(--in-s); border-radius:var(--r-m); padding:14px 16px;
+  }
+  .facts dt{ color:var(--muted); font-size:12.5px; }
+  .facts dd{ margin:0; font-family:"Chivo Mono",monospace; font-size:13px; font-weight:500; }
+  .facts dd.tipo{ font-family:"Archivo",sans-serif; font-weight:700; font-size:15.5px; color:var(--accent); }
+  .note{ margin:13px 0 0; color:var(--muted); font-size:12.5px; }
+
+  /* ---------- panel de control ---------- */
+  .layout{ display:grid; grid-template-columns:minmax(0,1fr) 342px; gap:16px; align-items:start; }
+  @media (max-width:1000px){ .layout{ grid-template-columns:minmax(0,1fr); } }
+  .controls{ padding:18px; position:sticky; top:16px; }
+  @media (max-width:1000px){ .controls{ position:static; } }
+  .controls h2{
+    font-size:10px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--muted); margin:0 0 11px;
+  }
+  .chips{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .chips button{
+    font:500 12.5px/1.25 "Archivo",sans-serif; color:var(--ink); background:var(--panel);
+    border:0; border-radius:var(--r-s); padding:11px 12px; cursor:pointer; text-align:left;
+    box-shadow:var(--up-xs); transition:box-shadow .16s ease, color .16s ease;
+  }
+  .chips button:hover{ color:var(--accent); }
+  .chips button[aria-pressed="true"]{ box-shadow:var(--in-s); color:var(--accent); font-weight:600; }
+  hr.sep{ border:0; height:2px; margin:18px 0; border-radius:2px; box-shadow:var(--in-s); background:var(--panel); }
+  .row{ margin:0 0 16px; }
+  .row:last-child{ margin-bottom:0; }
+  .row label{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; font-size:13.5px; margin-bottom:9px; }
+  .row .val{ font-family:"Chivo Mono",monospace; font-size:12px; color:var(--accent); }
+
+  /* deslizadores: ranura hundida, tirador en relieve */
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; width:100%; height:26px; margin:0; background:transparent; cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:10px; border-radius:99px; background:var(--panel); box-shadow:var(--in-s);
+  }
+  input[type=range]::-moz-range-track{
+    height:10px; border-radius:99px; background:var(--panel); box-shadow:var(--in-s);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; appearance:none; width:22px; height:22px; margin-top:-6px; border-radius:50%;
+    background:var(--panel); box-shadow:var(--up-xs); border:3px solid var(--panel);
+    background-image:radial-gradient(circle at 50% 50%, var(--accent) 0 3.5px, transparent 3.5px);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:22px; height:22px; border-radius:50%; border:3px solid var(--panel);
+    background:var(--panel); box-shadow:var(--up-xs);
+    background-image:radial-gradient(circle at 50% 50%, var(--accent) 0 3.5px, transparent 3.5px);
+  }
+  .transport input[type=range]::-webkit-slider-runnable-track{ height:6px; background:rgba(255,255,255,.14); box-shadow:none; }
+  .transport input[type=range]::-moz-range-track{ height:6px; background:rgba(255,255,255,.14); box-shadow:none; }
+  .transport input[type=range]::-webkit-slider-thumb{
+    width:15px; height:15px; margin-top:-4.5px; border:0; background:#cbd4e2; background-image:none; box-shadow:none;
+  }
+  .transport input[type=range]::-moz-range-thumb{ width:15px; height:15px; border:0; background:#cbd4e2; background-image:none; box-shadow:none; }
+
+  /* interruptores con testigo */
+  .toggles{ display:grid; grid-template-columns:1fr 1fr; gap:11px 12px; }
+  .toggles label{ display:flex; align-items:center; gap:10px; font-size:13px; cursor:pointer; color:var(--muted); }
+  .toggles label:has(input:checked){ color:var(--ink); }
+  input[type=checkbox]{
+    -webkit-appearance:none; appearance:none; margin:0; flex:none;
+    width:26px; height:26px; border-radius:9px; background:var(--panel); box-shadow:var(--up-xs);
+    cursor:pointer; position:relative; transition:box-shadow .16s ease;
+  }
+  input[type=checkbox]::after{
+    content:""; position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px;
+    border-radius:50%; background:var(--lo); transition:background .16s ease, box-shadow .16s ease;
+  }
+  input[type=checkbox]:checked{ box-shadow:var(--in-s); }
+  input[type=checkbox]:checked::after{ background:var(--accent-soft); box-shadow:0 0 7px var(--accent-soft); }
+
+  /* ---------- generador ---------- */
+  .sigStrip{
+    display:block; width:100%; height:auto; aspect-ratio:240/64; margin-top:13px;
+    border-radius:var(--r-m); background:var(--screen); box-shadow:var(--recess);
+  }
+  .liveNote{ font-size:12px; color:var(--muted); margin:9px 0 0; }
+  .disabledBlock{ opacity:.38; pointer-events:none; }
+
+  /* ---------- el generador manual, sobre la pantalla ---------- */
+  .pad{
+    position:absolute; left:23px; bottom:23px; z-index:7; width:clamp(124px,21vw,190px);
+    background:rgba(16,18,24,.82); border-radius:var(--r-m); padding:9px;
+    -webkit-backdrop-filter:blur(7px); backdrop-filter:blur(7px);
+  }
+  .pad canvas{ display:block; width:100%; height:auto; aspect-ratio:1/1; touch-action:none; cursor:crosshair; border-radius:9px; }
+  .pad .cap{ font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:#8c97a8; text-align:center; margin-top:7px; }
+  .pad .axis{ display:flex; gap:4px; margin-bottom:8px; }
+  .pad .axis button{
+    flex:1; font:600 10px/1 "Archivo",sans-serif; color:#a4aebd; background:rgba(255,255,255,.07);
+    border:0; border-radius:7px; padding:7px 0; cursor:pointer;
+  }
+  .pad .axis button[aria-pressed="true"]{ background:var(--accent-soft); color:#1b1206; }
+  .padHint{
+    position:absolute; left:9px; right:9px; top:44px; bottom:92px; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#a9b4c4; text-align:center; pointer-events:none;
+  }
+  .mode-live .transport{ left:auto; right:23px; transform:none; }
+  .mode-live .legend, .mode-live .nudge{ display:none; }
+
+  /* ---------- ayuda, créditos, avisos ---------- */
+  details.help{ margin-top:16px; padding:18px 20px; }
+  details.help summary{ cursor:pointer; font-weight:600; font-size:14.5px; list-style:none; display:flex; align-items:center; gap:10px; }
+  details.help summary::-webkit-details-marker{ display:none; }
+  details.help summary::before{
+    content:"+"; display:grid; place-items:center; width:24px; height:24px; flex:none;
+    border-radius:8px; background:var(--panel); box-shadow:var(--up-xs); color:var(--accent); font-weight:700;
+  }
+  details.help[open] summary::before{ content:"−"; box-shadow:var(--in-s); }
+  details.help .body{ margin-top:14px; }
+  details.help h3{ font-size:14px; margin:20px 0 5px; }
+  details.help h3:first-child{ margin-top:0; }
+  details.help p{ margin:0 0 10px; max-width:74ch; font-size:14px; }
+  details.help ul{ margin:0 0 10px; padding-left:20px; max-width:74ch; font-size:14px; }
+  details.help li{ margin-bottom:4px; }
+  code, kbd{
+    font-family:"Chivo Mono",monospace; font-size:12.5px; color:var(--ink);
+    background:var(--panel); box-shadow:var(--in-s); border-radius:7px; padding:2px 7px;
+  }
+  kbd{ font-weight:600; }
+
+  .anchor{ position:relative; }
+  .popover{
+    position:absolute; z-index:20; right:0; top:calc(100% + 11px); width:min(350px,86vw);
+    background:var(--panel); border-radius:var(--r-l); box-shadow:var(--up); padding:16px; display:none;
+  }
+  .popover.on{ display:block; }
+  .popover p{ margin:0 0 11px; font-size:13px; color:var(--muted); }
+  .popover .linebox{ display:flex; gap:8px; }
+  .popover input{
+    flex:1; min-width:0; font-family:"Chivo Mono",monospace; font-size:11.5px; padding:10px 11px;
+    border:0; border-radius:var(--r-s); background:var(--panel); box-shadow:var(--in-s); color:var(--ink);
+  }
+  .toast{
+    position:fixed; left:50%; transform:translateX(-50%); bottom:calc(24px + env(safe-area-inset-bottom,0px));
+    background:var(--panel); color:var(--ink); padding:13px 20px; border-radius:999px; font-size:13.5px; font-weight:600;
+    box-shadow:var(--up); opacity:0; pointer-events:none; transition:opacity .22s ease; z-index:50;
+  }
+  .toast.on{ opacity:1; }
+  .backdrop{ position:fixed; inset:0; background:rgba(20,17,12,.5); -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); display:none; z-index:60; }
+  .backdrop.on{ display:block; }
+  .modal{
+    position:fixed; z-index:61; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:min(780px,92vw); max-height:min(84vh,840px); overflow:auto;
+    background:var(--panel); border-radius:var(--r-xl); box-shadow:var(--up); display:none;
+    padding:26px 28px calc(26px + env(safe-area-inset-bottom,0px));
+  }
+  .modal.on{ display:block; }
+  .modal h2{ margin:0 0 5px; font-size:21px; font-weight:700; letter-spacing:-.02em; }
+  .modal .lead{ margin:0 0 20px; color:var(--muted); font-size:13.5px; }
+  .modal h3{ margin:22px 0 7px; font-size:14px; }
+  .modal p, .modal li{ font-size:13.5px; max-width:70ch; }
+  .modal p{ margin:0 0 9px; }
+  .modal ul{ margin:0 0 9px; padding-left:19px; }
+  .modal li{ margin-bottom:6px; }
+  .modal a{ color:var(--accent); }
+  .modal .close{ position:absolute; right:18px; top:18px; }
+  .modal dl.conv{ margin:0; display:grid; grid-template-columns:auto minmax(0,1fr); gap:8px 16px; font-size:13px;
+    background:var(--panel); box-shadow:var(--in-s); border-radius:var(--r-m); padding:14px 16px; }
+  .modal dl.conv dt{ color:var(--muted); }
+  .modal dl.conv dd{ margin:0; font-family:"Chivo Mono",monospace; font-size:12px; }
+  .modal .warn{ border-radius:var(--r-m); box-shadow:var(--in-s); padding:14px 16px; margin-bottom:10px; }
+
+  .foot{ margin-top:26px; color:var(--muted); font-size:12.5px; text-align:center; }
+  .foot button{ background:none; border:0; color:var(--accent); font:inherit; cursor:pointer; padding:0; text-decoration:underline; }
+
+
+  /* ---------- navegación principal: elegir vista es la decisión mayor ---------- */
+  .viewtabs{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0 0 16px; }
+  @media (max-width:640px){ .viewtabs{ grid-template-columns:1fr; } }
+  .viewtabs button{
+    text-align:left; border:0; cursor:pointer; background:var(--panel); color:var(--muted);
+    border-radius:var(--r-l); padding:15px 18px; box-shadow:var(--up-s);
+    display:block; transition:box-shadow .18s ease, color .18s ease;
+  }
+  .viewtabs button b{ display:block; font-size:16px; font-weight:700; letter-spacing:-.015em; color:var(--ink); }
+  .viewtabs button span{ display:block; font-size:12.5px; margin-top:3px; }
+  .viewtabs button:hover b{ color:var(--accent); }
+  .viewtabs button[aria-pressed="true"]{ box-shadow:var(--in-s); }
+  .viewtabs button[aria-pressed="true"] b{ color:var(--accent); }
+  .viewtabs button[aria-pressed="true"] b::after{
+    content:"·  en pantalla"; font-size:10px; font-weight:600; letter-spacing:.12em;
+    text-transform:uppercase; color:var(--muted); margin-left:9px;
+  }
+
+  /* ---------- línea de estado: qué estoy viendo, siempre ---------- */
+
+  /* ---------- consola: la cadena de señal, por pasos ---------- */
+  .console{ display:flex; flex-direction:column; gap:12px; position:sticky; top:16px; }
+  @media (max-width:1000px){ .console{ position:static; } }
+  .group{ overflow:hidden; }
+  .grouphead{
+    width:100%; display:flex; align-items:center; gap:13px; text-align:left; cursor:pointer;
+    background:transparent; border:0; padding:15px 17px; color:var(--ink); font:inherit;
+  }
+  .grouphead .num{
+    flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:9px;
+    font:700 12px/1 "Chivo Mono",monospace; color:var(--accent);
+    background:var(--panel); box-shadow:var(--up-xs);
+  }
+  .grouphead .gt{ flex:1; min-width:0; }
+  .grouphead .gt b{ display:block; font-size:14.5px; font-weight:600; letter-spacing:-.01em; }
+  .grouphead .gt em{
+    display:block; font-style:normal; font-family:"Chivo Mono",monospace; font-size:11.5px;
+    color:var(--accent); margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .grouphead .chev{ width:17px; height:17px; flex:none; color:var(--muted); transition:transform .2s ease; }
+  .grouphead[aria-expanded="true"] .chev{ transform:rotate(180deg); }
+  .grouphead[aria-expanded="true"] .num{ box-shadow:var(--in-s); }
+  .groupbody{ padding:0 17px 18px; }
+  .grouphead[aria-expanded="false"] + .groupbody{ display:none; }
+  .why{
+    margin:0 0 15px; font-size:12.5px; color:var(--muted); line-height:1.5;
+    padding:11px 13px; border-radius:var(--r-m); box-shadow:var(--in-s);
+  }
+  .why code{ font-size:11.5px; box-shadow:none; background:transparent; padding:0; color:var(--ink); }
+  .console h2{ margin-top:0; }
+  .console hr.sep:first-child{ display:none; }
+
+
+  /* ---------- hero ---------- */
+  .hero{ display:flex; flex-wrap:wrap; gap:20px 28px; align-items:flex-start; margin:8px 0 24px; }
+  .heroMain{ flex:1; min-width:min(100%,420px); }
+  .eyebrow{ margin:0 0 10px; font-size:10.5px; font-weight:600; letter-spacing:.24em; text-transform:uppercase; color:var(--muted); }
+  .hero h1{
+    margin:0; font-size:clamp(30px,5.2vw,52px); font-weight:700; letter-spacing:-.035em; line-height:1.02;
+  }
+  .hero .lead{ margin:14px 0 0; font-size:clamp(15px,1.5vw,17px); color:var(--muted); max-width:56ch; line-height:1.55; }
+  .hero .btn.primary{ margin-top:18px; padding:14px 20px; font-size:14px; }
+  .hero .tools{ margin-left:auto; padding-top:6px; }
+  @media (max-width:700px){ .hero .tools{ margin-left:0; width:100%; } }
+
+  /* ---------- resultado en palabras, antes que en cifras ---------- */
+  .verdict{ margin-top:16px; padding:22px 24px 8px; }
+  .vk{ margin:0 0 7px; font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
+  .verdict h2{ margin:0; font-size:clamp(21px,2.6vw,28px); font-weight:700; letter-spacing:-.025em; color:var(--accent); }
+  .vtext{ margin:10px 0 0; font-size:15px; max-width:66ch; line-height:1.6; }
+  .scopes{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:22px; }
+  @media (max-width:640px){ .scopes{ grid-template-columns:1fr; } }
+  .scopes figure{ margin:0; }
+  .scopes figcaption.panelTitle{ margin-bottom:10px; }
+  .cap2{ margin:10px 0 0; font-size:12.5px; color:var(--muted); line-height:1.5; }
+  details.tech{ margin-top:8px; border-radius:var(--r-m); }
+  details.tech summary{
+    cursor:pointer; list-style:none; font-size:12.5px; font-weight:600; color:var(--muted);
+    padding:14px 2px; display:flex; align-items:center; gap:9px;
+  }
+  details.tech summary::-webkit-details-marker{ display:none; }
+  details.tech summary::before{
+    content:"+"; display:grid; place-items:center; width:21px; height:21px; flex:none;
+    border-radius:7px; background:var(--panel); box-shadow:var(--up-xs); color:var(--accent); font-weight:700; font-size:13px;
+  }
+  details.tech[open] summary::before{ content:"−"; box-shadow:var(--in-s); }
+  details.tech summary:hover{ color:var(--accent); }
+  .techbody{ padding:4px 0 18px; }
+  .techbody .note{ margin-top:14px; }
+
+  /* ---------- pie ---------- */
+  .foot{ margin-top:30px; text-align:center; }
+  .footlinks{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:14px; }
+  .footlinks button{
+    background:var(--panel); border:0; box-shadow:var(--up-xs); border-radius:var(--r-s);
+    padding:11px 17px; font:600 13px/1 "Archivo",sans-serif; color:var(--ink); cursor:pointer; text-decoration:none;
+  }
+  .footlinks button:hover{ color:var(--accent); }
+  .foot p{ margin:0; color:var(--muted); font-size:12.5px; }
+
+  @media (prefers-reduced-motion:reduce){ *{ transition:none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="heroMain">
+      <h1>Laboratorio de ondas electromagnéticas</h1>
+      <button class="btn primary" id="tourBtn" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+        Recorrido guiado
+      </button>
+    </div>
+    <div class="tools">
+      <div class="anchor">
+        <button class="btn" id="shareBtn" type="button" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7L12 19"/></svg>
+          Compartir
+        </button>
+        <div class="popover" id="sharePop">
+          <p>Este enlace abre la aplicación con la configuración que tienes ahora en pantalla.</p>
+          <div class="linebox">
+            <input type="text" id="shareUrl" readonly aria-label="Enlace a este estado">
+            <button class="btn" id="copyBtn" type="button">Copiar</button>
+          </div>
+        </div>
+      </div>
+      <button class="btn" id="pngBtn" type="button" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+        Imagen
+      </button>
+      <button class="btn icon" id="themeBtn" type="button" aria-label="Cambiar entre modo claro y oscuro" title="Cambiar tema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <nav class="viewtabs" role="group" aria-label="Vista">
+    <button type="button" id="modePlane" aria-pressed="true">
+      <b>Onda plana</b><span>Cómo oscila y se polariza una onda que ya viaja</span>
+    </button>
+    <button type="button" id="modeSpace" aria-pressed="false">
+      <b>Radiación 3D</b><span>Cómo sale esa onda al espacio desde una antena</span>
+    </button>
+  </nav>
+
+  <div class="layout">
+    <!-- ============ columna principal ============ -->
+    <div>
+      <div class="stage-wrap">
+        <canvas id="stage" tabindex="0" role="img"
+          aria-label="Escena tridimensional de una onda electromagnética. Usa las flechas para girar la vista, más y menos para acercar, y la barra espaciadora para pausar."></canvas>
+
+        <div class="views" role="group" aria-label="Puntos de vista">
+          <button class="glass" type="button" data-view="iso" aria-pressed="true">Vista 3D</button>
+          <button class="glass" type="button" data-view="front" aria-pressed="false">Frontal x–y</button>
+          <button class="glass" type="button" data-view="plan" aria-pressed="false">Planta x–z</button>
+          <button class="glass" type="button" data-view="elev" aria-pressed="false">Alzado y–z</button>
+        </div>
+
+        <div class="legend"><span><i style="background:#f2a01e"></i>campo E</span><span><i style="background:#7d8bff"></i>campo B (×c)</span></div>
+
+        <div class="nudge" id="nudge">Arrastra para girar la escena</div>
+
+        <div class="pad" id="pad" hidden>
+          <div class="axis" role="group" aria-label="Eje de la antena">
+            <button type="button" id="axX" aria-pressed="true">eje x</button>
+            <button type="button" id="axY" aria-pressed="false">eje y</button>
+            <button type="button" id="axF" aria-pressed="false">libre</button>
+          </div>
+          <canvas id="padCv" width="240" height="240" tabindex="0" role="application"
+            aria-label="Generador. Arrastra dentro para mover el campo eléctrico en el origen; las flechas del teclado también lo mueven."></canvas>
+          <div class="padHint" id="padHint">Arrastra a los lados</div>
+          <div class="cap" id="padCap">antena lineal en x</div>
+        </div>
+
+        <div class="transport">
+          <button type="button" id="play" aria-label="Pausar la animación" title="Pausar (barra espaciadora)">
+            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+          </button>
+          <button type="button" id="rewind" aria-label="Reiniciar el tiempo" title="Reiniciar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          </button>
+          <span class="sp"><span>velocidad</span>
+            <input type="range" id="sp" min="0" max="2" step="0.05" value="1" aria-label="Velocidad de la animación">
+          </span>
+        </div>
+
+        <div class="tour" id="tour" role="region" aria-label="Recorrido guiado">
+          <div class="step" id="tourStep">Paso 1 de 6</div>
+          <h3 id="tourTitle"></h3>
+          <p id="tourText"></p>
+          <div class="nav">
+            <div class="dots" id="tourDots"></div>
+            <span class="grow"></span>
+            <button class="glass" type="button" id="tourExit">Salir</button>
+            <button class="glass" type="button" id="tourPrev">Anterior</button>
+            <button class="glass" type="button" id="tourNext" style="background:#d98c12;color:#1b1206;font-weight:600">Siguiente</button>
+          </div>
+        </div>
+      </div>
+
+      <section class="card verdict">
+        <p class="vk" id="vKicker">Polarización</p>
+        <h2 id="vTitle">—</h2>
+        <p class="vtext" id="vText">—</p>
+
+        <div class="scopes">
+          <figure>
+            <figcaption class="panelTitle" id="p1Title">Plano de observación</figcaption>
+            <canvas id="mini" class="mini" width="380" height="380" role="img" aria-label="Figura que describe la punta del campo eléctrico"></canvas>
+            <p class="cap2" id="p1Cap">—</p>
+          </figure>
+          <figure>
+            <figcaption class="panelTitle" id="p2Title">Esfera de Poincaré</figcaption>
+            <canvas id="poinc" class="mini" width="380" height="380" role="img" aria-label="Posición del estado de polarización"></canvas>
+            <p class="cap2" id="p2Cap">—</p>
+          </figure>
+        </div>
+
+        <details class="tech">
+          <summary>Números y detalle técnico</summary>
+          <div class="techbody">
+<dl id="dlSine">
+            <dt>Tipo</dt><dd class="tipo" id="rTipo">—</dd>
+            <dt>Sentido de giro</dt><dd id="rSent">—</dd>
+            <dt>Inclinación ψ</dt><dd id="rPsi">—</dd>
+            <dt>Relación axial</dt><dd id="rAR">—</dd>
+            <dt>Stokes s₁ s₂ s₃</dt><dd id="rStokes">—</dd>
+            <dt>Desfase δ</dt><dd id="rDelta">—</dd>
+          </dl>
+          <dl id="dlSpace" hidden>
+            <dt>Antena</dt><dd class="tipo" id="sAnt">—</dd>
+            <dt>Directividad</dt><dd id="sDir">—</dd>
+            <dt>Ancho de haz (plano E)</dt><dd id="sHp">—</dd>
+            <dt>Plano H (azimut)</dt><dd id="sAz">—</dd>
+            <dt>Polarización</dt><dd id="sPol">—</dd>
+            <dt>Nivel en la sonda</dt><dd id="sLvl">—</dd>
+          </dl>
+                      <p class="note" id="noteSine">El sentido de giro sigue el convenio IEEE: con el pulgar derecho apuntando a +z, los dedos indican hacia dónde gira <b>E</b> con el tiempo.</p>
+            <p class="note" id="noteSpace" hidden>Solo campo lejano: la amplitud cae como 1/r y la densidad de potencia como 1/r². El patrón indica cuánta potencia va en cada dirección, no la forma del frente de onda, que sigue siendo esférico.</p>
+                    </div>
+        </details>
+      </section>
+
+      <footer class="foot">
+        <div class="footlinks">
+          <button type="button" id="guideLink">Guía</button>
+          <button type="button" id="credLink">Créditos y fuentes</button>
+        </div>
+        <p>Modelo de onda plana monocromática en el vacío · unidades normalizadas</p>
+      </footer>
+    </div>
+
+    <!-- ============ panel de control ============ -->
+    <div class="console">
+      <section class="group card" id="grp1">
+        <button class="grouphead" type="button" aria-expanded="false" aria-controls="gb1">
+          <span class="num">1</span>
+          <span class="gt"><b>Fuente de la señal</b><em id="sum1">Sinusoidal</em></span>
+          <svg viewBox="0 0 24 24" class="chev" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="groupbody" id="gb1">
+          <p class="why">Qué emite el origen. El campo en cualquier punto es lo que hizo la fuente hace <code>distancia/v</code> segundos: eso es toda la física que hay detrás.</p>
+<div id="genBlock">
+                <div class="seg segfull" role="group" aria-label="Fuente de la señal">
+          <button type="button" id="srcPreset" aria-pressed="true">Predefinida</button>
+          <button type="button" id="srcManual" aria-pressed="false">Manual</button>
+        </div>
+
+        <div id="presetCtl" style="margin-top:10px">
+          <div class="chips" id="waveChips">
+            <button type="button" data-w="sine" aria-pressed="true">Sinusoidal</button>
+            <button type="button" data-w="tri">Triangular</button>
+            <button type="button" data-w="sq">Cuadrada</button>
+            <button type="button" data-w="saw">Diente de sierra</button>
+            <button type="button" data-w="sinc">Sinc</button>
+            <button type="button" data-w="pulse">Monociclo</button>
+          </div>
+        </div>
+
+        <p class="liveNote" id="manualCtl" hidden style="margin-top:10px">Arrastra dentro del cuadro que aparece sobre la escena. Lo que dibujes sale emitido y viaja.</p>
+
+        <canvas id="sigCv" class="sigStrip" width="240" height="64" role="img" aria-label="Señal generada"></canvas>
+        <p class="liveNote" id="sigCap" style="margin-top:4px">señal en el origen · últimos 3 s</p>
+      </div>
+
+      
+        </div>
+      </section>
+
+      <section class="group card" id="grp2">
+        <button class="grouphead" type="button" aria-expanded="false" aria-controls="gb2">
+          <span class="num">2</span>
+          <span class="gt"><b id="t2">Polarización</b><em id="sum2">—</em></span>
+          <svg viewBox="0 0 24 24" class="chev" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="groupbody" id="gb2">
+          <p class="why" id="why2">Cómo se reparte el campo entre los dos ejes transversales. El desfase δ es un retardo de la componente y: eso solo decide la forma que dibuja la punta de E.</p>
+<div id="waveBlock">
+      <hr class="sep">
+      <h2>Polarizaciones típicas</h2>
+      <div class="chips" id="presets">
+        <button type="button" data-p="lh">Lineal horizontal</button>
+        <button type="button" data-p="lv">Lineal vertical</button>
+        <button type="button" data-p="l45">Lineal a 45°</button>
+        <button type="button" data-p="l135">Lineal a 135°</button>
+        <button type="button" data-p="cd">Circular dextrógira</button>
+        <button type="button" data-p="cl">Circular levógira</button>
+      </div>
+
+      <hr class="sep">
+      <h2>Componentes del campo E</h2>
+      <p class="liveNote" id="liveNote" hidden>Las dos componentes las marca tu gesto en el generador, así que estos mandos quedan en pausa.</p>
+      <div id="sineCtl">
+        <div class="row">
+          <label for="ax">Amplitud en x <span class="val" id="vax">1.00</span></label>
+          <input type="range" id="ax" min="0" max="1" step="0.01" value="1">
+        </div>
+        <div class="row">
+          <label for="ay">Amplitud en y <span class="val" id="vay">0.60</span></label>
+          <input type="range" id="ay" min="0" max="1" step="0.01" value="0.6">
+        </div>
+        <div class="row">
+          <label for="dl">Desfase δ entre x e y <span class="val" id="vdl">+90°</span></label>
+          <input type="range" id="dl" class="b" min="-180" max="180" step="1" value="90">
+        </div>
+      </div>
+
+      </div>
+      
+<div id="antBlock" hidden>
+<h2>Tipo de antena</h2>
+        <div class="chips" id="antChips">
+          <button type="button" data-a="iso">Isotrópica (teórica)</button>
+          <button type="button" data-a="short">Dipolo corto</button>
+          <button type="button" data-a="half" aria-pressed="true">Dipolo λ/2</button>
+          <button type="button" data-a="full">Dipolo 1λ</button>
+          <button type="button" data-a="mono">Monopolo λ/4 + plano</button>
+          <button type="button" data-a="coll">Colineal 4×λ/2</button>
+        </div>
+              </div>
+
+        </div>
+      </section>
+
+      <section class="group card" id="grp3">
+        <button class="grouphead" type="button" aria-expanded="false" aria-controls="gb3">
+          <span class="num">3</span>
+          <span class="gt"><b>Visualización</b><em id="sum3">—</em></span>
+          <svg viewBox="0 0 24 24" class="chev" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="groupbody" id="gb3">
+          <p class="why">Qué capas se dibujan. No cambia nada de lo que se calcula, solo lo que se muestra.</p>
+<div id="sceneBlock">
+      <hr class="sep">
+            <div class="row">
+        <label for="nw">Longitudes de onda visibles <span class="val" id="vnw">3</span></label>
+        <input type="range" id="nw" class="n" min="1" max="5" step="1" value="3">
+      </div>
+
+      </div>
+      
+<div id="showBlock">
+      <hr class="sep">
+            <div class="toggles">
+        <label><input type="checkbox" id="tE" checked> Campo E</label>
+        <label><input type="checkbox" id="tB" checked> Campo B</label>
+        <label><input type="checkbox" id="tV" checked> Vectores</label>
+        <label><input type="checkbox" id="tP" checked> Plano y elipse</label>
+        <label><input type="checkbox" id="tG" checked> Rejilla</label>
+        <label><input type="checkbox" id="tC"> Componentes</label>
+      </div>
+      </div>
+    
+<div id="layBlock" hidden>
+<h2>Capas</h2>
+        <div class="toggles">
+          <label><input type="checkbox" id="tSV"> Corte vertical</label>
+          <label><input type="checkbox" id="tSH"> Corte horizontal</label>
+          <label><input type="checkbox" id="tWav" checked> Campo en 3D</label>
+          <label><input type="checkbox" id="tPat" checked> Patrón</label>
+          <label><input type="checkbox" id="tPr" checked> Sonda</label>
+        </div>
+        <hr class="sep">
+        <h2>Sonda</h2>
+        <p class="liveNote" style="margin-bottom:10px">Una única dirección de observación. Sobre ella se dibujan los vectores E y B reales, con su caída 1/r.</p>
+        <div class="row">
+          <label for="pr">Ángulo θ desde el eje <span class="val" id="vpr">90°</span></label>
+          <input type="range" id="pr" class="n" min="0" max="180" step="1" value="90">
+        </div>
+        <div class="toggles">
+          <label><input type="checkbox" id="tE2" checked> Campo E</label>
+          <label><input type="checkbox" id="tB2" checked> Campo B</label>
+          <label><input type="checkbox" id="tNorm" checked> Compensar 1/r</label>
+        </div>
+        <p class="liveNote" style="margin-top:8px">La compensación es solo una ayuda visual: mantiene el tamaño de los vectores a lo largo del rayo. La caída real 1/r sigue viéndose en las capas y en los cortes.</p>
+            </div>
+
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="modal" id="guide" role="dialog" aria-modal="true" aria-labelledby="guideTitle" tabindex="-1">
+  <button class="btn icon close" id="guideClose" type="button" aria-label="Cerrar">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+  <h2 id="guideTitle">Guía</h2>
+  <p class="lead">Todo lo que hace falta para leer lo que se ve en pantalla, de lo básico a los detalles que suelen confundir.</p>
+
+          <h3>Los dos campos</h3>
+          <p>El campo eléctrico de una onda plana se escribe con dos componentes transversales: <code>Ex = Ax·cos(kz − ωt)</code> y <code>Ey = Ay·cos(kz − ωt + δ)</code>. El campo magnético no es independiente: en el vacío vale <code>B = (1/c)·ẑ × E</code>, es decir, la misma forma girada 90° alrededor del eje de propagación y en fase con E. Aquí se dibuja multiplicado por <code>c</code> para que sea visible; en unidades reales sería unas 3·10⁸ veces más pequeño.</p>
+
+          <h3>La polarización es solo el desfase</h3>
+          <ul>
+            <li><b>δ = 0° o 180°</b>: las dos componentes pasan por cero a la vez y la punta de E recorre una recta. Polarización lineal.</li>
+            <li><b>δ = ±90° con amplitudes iguales</b>: una componente está en su máximo cuando la otra vale cero, y la punta describe una circunferencia.</li>
+            <li><b>Cualquier otro caso</b>: una elipse, que es la situación general. La recta y el círculo son sus dos casos límite.</li>
+          </ul>
+
+          <h3>Dos giros que se confunden</h3>
+          <p>Congelando el tiempo, la curva de E a lo largo de z es una hélice. Fijando un plano z y dejando correr el tiempo, la punta de E gira. Los dos sentidos son opuestos: una onda dextrógira IEEE dibuja una hélice levógira en el espacio. Pausa la animación y gira la escena para comprobarlo.</p>
+          <p>Cuidado también con los convenios: lo que en IEEE (radiofrecuencia y antenas) se llama dextrógiro, en óptica clásica se llama levógiro, porque allí se mira la onda de frente en vez de desde detrás.</p>
+
+          <h3>El generador de onda</h3>
+          <p>La fuente es única y alimenta las dos vistas. El campo en cualquier punto es lo que hizo la fuente en el instante retardado <code>t − distancia/v</code>: eso es literalmente lo que hace una onda. Como en el vacío no hay dispersión, la forma viaja intacta, sea cual sea.</p>
+          <p><b>Predefinida</b> ofrece seis señales. Aquí hay un detalle que suele pasarse por alto: el desfase δ es en realidad un retardo temporal de la componente y, así que la polarización se generaliza sin cambios a cualquier forma de onda. Con una triangular y δ = 90° la punta de E ya no recorre una elipse, sino la curva de Lissajous correspondiente. Y el monociclo es bipolar a propósito: un pulso con componente continua no se radia, porque un campo constante no transporta energía al infinito.</p>
+
+          <h3>Relación axial y esfera de Poincaré</h3>
+          <p>La relación axial es el cociente entre el eje mayor y el menor de la elipse: vale 1 (0 dB) en polarización circular y tiende a infinito en lineal. Es el parámetro que se especifica en una antena cuando la polarización importa. Los parámetros de Stokes normalizados sitúan el estado sobre la esfera de Poincaré: el ecuador son los estados lineales, los polos los circulares y cada hemisferio un sentido de giro. Dos estados diametralmente opuestos son ortogonales y no interfieren entre sí. Aquí el polo norte es el estado dextrógiro IEEE; la norma IEEE 145 dibuja la esfera con el eje invertido, así que conviene comprobar el convenio de cada referencia (lo tienes detallado en créditos y fuentes).</p>
+
+
+          <h3>La fuente manual</h3>
+          <p>Con esta fuente no hay ninguna fórmula detrás: lo que arrastras en el cuadro del generador es el valor del campo eléctrico en el origen, se guarda con su instante y se reproduce más adelante en el eje z con el retardo que le corresponde. Eso es exactamente lo que hace una onda: el campo en el punto z de hoy es lo que hizo la fuente hace <code>z/v</code> segundos. La sinusoide es solo el caso particular en el que la fuente oscila de forma regular.</p>
+          <p>Por defecto el generador está sujeto a un eje, porque así es como se comporta una antena lineal: un dipolo tiene un único elemento radiante orientado en una dirección, y lo único que puede variar es cuánto vale el campo y con qué signo. La tira de abajo es esa magnitud escalar frente al tiempo, la señal tal cual la entiende un transmisor. Con el botón «libre» liberas el segundo eje y ves lo que haría una antena helicoidal o un parche de polarización circular.</p>
+          <p>Conviene no mezclar dos cosas. La información que se transmite (voz, bits, telemetría) es escalar y va en la amplitud, la frecuencia o la fase de la portadora. La polarización, en cambio, la fija la geometría del radiador y es independiente del mensaje: la misma señal sale lineal por un dipolo y circular por una hélice. De hecho las dos dimensiones transversales pueden usarse como dos canales separados, que es lo que hace el multiplexado por polarización en enlaces de microondas y satélite.</p>
+          <p>Si sueltas el ratón, la fuente se apaga suavemente y el pulso que has creado se marcha por el eje z; pausando con la barra espaciadora puedes girarlo y mirarlo con calma. El estado que aparece en el panel está estimado sobre los últimos 3 s de gesto, porque la polarización no es una foto de un instante sino un patrón sostenido en el tiempo.</p>
+
+          <h3>La radiación en el espacio</h3>
+          <p>El tercer modo abandona la onda plana y dibuja el campo lejano de una antena real. Hay cuatro capas y conviene saber qué es cada una, porque representan cosas distintas.</p>
+          <ul>
+            <li><b>Campo en 3D.</b> La capa principal: capas esféricas concéntricas, cada una con el signo y la amplitud que le tocan en ese instante. Como el campo de estas antenas solo depende de la distancia y del ángulo respecto al eje, estas capas son el campo entero, no una muestra suya. El ámbar y el verde azulado son los dos semiciclos de E.</li>
+            <li><b>Cortes.</b> Si prefieres verlo plano, cortan el espacio por un plano y colorean celda a celda el valor instantáneo del campo. Es la misma información que la capa anterior, pero sin superposición y por tanto más fácil de medir a ojo.</li>
+            <li><b>Patrón.</b> La superficie r = F(θ), en gris para que no se confunda con un campo. No es el frente de onda ni la trayectoria de nada: es un diagrama que dice cuánta amplitud sale hacia cada lado.</li>
+            <li><b>Sonda.</b> Una única dirección de observación que eliges con el control. Sobre ella se dibujan los vectores E y B tal y como son, con su caída 1/r. Sirve para ver que en cualquier dirección la onda sigue siendo transversal y E × B apunta hacia fuera.</li>
+          </ul>
+          <p>Sobre los colores: el ámbar es siempre el campo eléctrico y el violeta el magnético, como en el resto de la aplicación. Cuando hace falta distinguir el signo de E se usa verde azulado para el semiciclo negativo, precisamente para no invadir el violeta de B.</p>
+          <p>En el corte vertical el campo eléctrico está contenido en el plano, así que lo que ves coloreado es una flecha que vive en el propio corte. En el corte horizontal, en cambio, el campo es perpendicular al plano: apunta hacia arriba o hacia abajo. Por eso una antena vertical da polarización vertical en el horizonte.</p>
+          <p>La confusión más común es tomar el patrón por la forma del frente de onda. No lo es: el frente siempre es esférico, porque la fase solo depende de la distancia. El patrón solo modula la amplitud según la dirección, y por eso en la animación los anillos se apagan cerca del eje del dipolo en lugar de deformarse.</p>
+          <p>Otra idea que conviene fijar: «omnidireccional» no significa que radie igual en todas las direcciones. Significa que radia igual en todo el azimut, y de ahí que el corte del plano H sea un círculo mientras el del plano E es un ocho. Un radiador realmente isotrópico no existe; está en la lista solo como referencia de 0 dBi, que es contra lo que se miden los dBi de todas las demás.</p>
+          <p>Un apunte de escala: con el generador manual, la velocidad de propagación de esta vista se multiplica por 2,5. La escena tiene 6 unidades de radio y, para que la onda se vea avanzar, su longitud de onda tiene que ser comparable a ese tamaño; un gesto rápido daría longitudes de onda demasiado cortas y el dibujo quedaría por debajo del límite de muestreo, congelado aunque estuviera bien calculado. La velocidad es una escala de dibujo en las dos vistas, así que ajustarla no cambia la física.</p>
+          <p>La circunferencia interior marca dónde empieza lo dibujado: por dentro estaría el campo cercano, que este modelo no representa.</p>
+
+          <h3>Atajos de teclado</h3>
+          <p>Los botones de vista devuelven además el zoom a su sitio, que es la forma rápida de reencuadrar si te pierdes. Con la escena enfocada: <kbd>←</kbd> <kbd>→</kbd> <kbd>↑</kbd> <kbd>↓</kbd> giran la vista, <kbd>+</kbd> y <kbd>−</kbd> acercan y alejan (también la rueda, o pellizcar con dos dedos), <kbd>espacio</kbd> pausa, <kbd>R</kbd> reinicia el tiempo y las teclas <kbd>1</kbd> a <kbd>6</kbd> cargan las polarizaciones típicas.</p>
+        </div>
+
+<div class="modal" id="credits" role="dialog" aria-modal="true" aria-labelledby="credTitle" tabindex="-1">
+  <button class="btn icon close" id="credClose" type="button" aria-label="Cerrar">
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </button>
+  <h2 id="credTitle">Créditos y fuentes</h2>
+  <p class="lead">Qué modelo hay detrás, qué convenios se han elegido y de dónde salen. Los convenios de polarización se contradicen entre disciplinas, así que conviene dejarlos por escrito.</p>
+
+  <h3>Qué se simula</h3>
+  <p>Una onda plana monocromática que avanza en +z por el vacío, sin pérdidas ni dispersión, en unidades normalizadas: λ = 2 u, periodo 3 s y por tanto velocidad de fase 2/3 u/s. No hay campo cercano, ni antena real, ni atenuación con la distancia.</p>
+  <dl class="conv">
+    <dt>Campo eléctrico</dt><dd>Ex = Ax·cos(kz − ωt) · Ey = Ay·cos(kz − ωt + δ)</dd>
+    <dt>Campo magnético</dt><dd>B = (1/c)·ẑ × E, dibujado multiplicado por c</dd>
+    <dt>Stokes</dt><dd>s₁ = (Ax²−Ay²)/s₀ · s₂ = 2AxAy·cos δ/s₀ · s₃ = 2AxAy·sin δ/s₀</dd>
+    <dt>Elipse</dt><dd>ψ = ½·atan2(s₂, s₁) · 2χ = asin(s₃) · AR = 1/|tan χ|</dd>
+  </dl>
+
+  <h3>Convenios adoptados</h3>
+  <ul>
+    <li><b>Sentido de giro: IEEE.</b> Pulgar derecho en el sentido de propagación, los dedos siguen el giro de E en el tiempo. Con esta definición δ = +90° es dextrógira, porque Ey queda retrasada respecto a Ex.</li>
+    <li><b>Equivalencia con óptica.</b> Lo que aquí se llama dextrógiro es levógiro en el convenio clásico de la óptica, que mira la onda de frente en lugar de desde detrás. Si comparas con un libro de óptica, espera el nombre contrario.</li>
+    <li><b>Hélice espacial.</b> Una onda dextrógira IEEE dibuja, congelando el tiempo, un tornillo levógiro a lo largo de z. No es un error de la animación.</li>
+  </ul>
+  <p class="warn"><b>Aviso sobre la esfera de Poincaré.</b> Aquí el polo norte es el estado dextrógiro IEEE (s₃ &gt; 0), siguiendo el uso de la IAU y la radioastronomía, donde V = RCP − LCP. La norma IEEE 145 dibuja la esfera al revés, con los estados levógiros arriba. El estado físico es el mismo; lo que cambia es hacia dónde apunta el eje vertical. Si usas esta herramienta junto a una referencia concreta, comprueba cuál de las dos sigue.</p>
+
+  <h3>Sobre el generador</h3>
+  <p>Modelo de propagación único para las dos vistas: el campo en un punto es el valor de la fuente en el instante retardado <code>t − d/v</code>, con <code>v = λ/T</code> constante. Es exacto en un medio sin dispersión como el vacío. El desfase δ se aplica como retardo temporal de la componente y, que es lo que generaliza la polarización a formas de onda no sinusoidales.</p>
+  <p>Los parámetros de Stokes se calculan siempre por promedios temporales sobre un periodo (o sobre los últimos 3 s con el generador manual): s₁ y s₂ directamente, el signo de s₃ por el sentido de giro medio y su módulo cerrando la esfera. Con una sinusoide el resultado coincide exactamente con las fórmulas analíticas. Con cualquier otra forma de onda hay que leerlo con cuidado: Stokes y la esfera de Poincaré están definidos para ondas monocromáticas, y una triangular o un pulso no lo son, así que lo que se muestra es el estado medio equivalente, no una descripción completa.</p>
+  <p>A las formas de onda predefinidas se les ha quitado la componente continua, incluida la sinc, a la que se le resta su valor medio de 0,143577 antes de renormalizar: un campo con componente continua no se radia.</p>
+
+  <h3>Sobre el modo de radiación 3D</h3>
+  <p>Solo campo lejano (zona de Fraunhofer) de radiadores lineales con simetría de revolución, alimentados con corriente sinusoidal y sin pérdidas. No hay campo cercano, ni acoplo, ni suelo real, ni impedancia. La amplitud va como 1/r y la densidad de potencia como 1/r². Los diagramas usados, con θ medido desde el eje de la antena:</p>
+  <dl class="conv">
+    <dt>Dipolo corto</dt><dd>F(θ) = sin θ</dd>
+    <dt>Dipolo de longitud L</dt><dd>F(θ) = [cos(kL/2·cos θ) − cos(kL/2)] / sin θ</dd>
+    <dt>Monopolo λ/4</dt><dd>el dipolo λ/2 recortado por el plano de masa (θ ≤ 90°)</dd>
+    <dt>Colineal de N</dt><dd>elemento λ/2 × factor de array sin(Nψ/2)/[N·sin(ψ/2)], ψ = kd·cos θ</dd>
+    <dt>Directividad</dt><dd>D = 2·F²máx / ∫₀^π F²(θ)·sin θ·dθ, integrada por Simpson en el propio navegador</dd>
+    <dt>Campo del corte</dt><dd>E·θ̂ = F(θ)·cos(kr − ωt)/r, evaluado en cada celda del plano</dd>
+    <dt>Base local</dt><dd>E en θ̂, B en la dirección azimutal, con E × B = r̂ en toda la esfera</dd>
+  </dl>
+  <p>La velocidad de propagación de esta vista se escala por fuente (×1 con señal predefinida, ×2,5 con gesto manual) y la separación entre capas se fija en un séptimo de la longitud de onda resultante, con topes entre 0,12 y 0,4 unidades. Sin ese ajuste, un gesto rápido daría menos de una muestra por longitud de onda, por debajo del límite de Nyquist espacial, y la escena aparecería inmóvil. La capa de campo en 3D dibuja capas esféricas separadas esa distancia, con color según el signo del valor de la fuente retardado y opacidad proporcional a su módulo por F(θ)/r. Como el campo de un radiador con simetría de revolución solo depende de r y de θ, ese conjunto de capas describe el campo completo. El corte de campo no está estilizado: se recorre una malla polar de 40 × 72 celdas sobre el plano y cada una se colorea con el valor instantáneo y con signo de la expresión de arriba, saturando la escala de color en ±1. La zona interior a 0,5 u se deja en blanco porque ahí no vale la aproximación de campo lejano.</p>
+  <p>Curiosidad comprobada al montarlo: el colineal de dos dipolos λ/2 separados λ/2 tiene exactamente el mismo diagrama que un único dipolo de 1λ, porque cos(π·cos θ) + 1 = 2cos²(π/2·cos θ). Por eso en la lista está el de cuatro elementos, que sí aporta algo distinto y enseña los lóbulos secundarios.</p>
+
+  <h3>Comprobaciones numéricas</h3>
+  <ul>
+    <li>El campo propagado por el registro reproduce la sinusoide analítica con error máximo de 1,5·10⁻⁴ y periodicidad espacial λ = 2 exacta.</li>
+    <li>Las directividades calculadas coinciden con los valores de libro: 1,76 dBi el dipolo corto, 2,15 el λ/2, 3,82 el de 1λ y 5,15 el monopolo λ/4; los anchos de haz dan 78° y 39° respectivamente.</li>
+    <li>La base esférica usada es dextrógira en toda la esfera: (E × B)·r̂ = 1 en las 380 direcciones comprobadas, es decir, el vector de Poynting apunta hacia fuera en cualquier dirección.</li>
+    <li>El estimador devuelve s₃ = 1,00 para un gesto circular, s₂ = 1,00 para uno lineal a 45° y s₁ = 1,00 para uno horizontal.</li>
+  </ul>
+
+  <h3>Fuentes</h3>
+  <ul>
+    <li>IEEE Std 145, <i>Standard for Definitions of Terms for Antennas</i> — definición normativa de sentido de giro y de la esfera de Poincaré.</li>
+    <li>C. A. Balanis, <i>Antenna Theory: Analysis and Design</i> — diagramas de dipolos, arrays colineales y definición de directividad.</li>
+    <li>C. A. Balanis, <i>Advanced Engineering Electromagnetics</i>, capítulo de propagación y polarización — <a href="https://onlinelibrary.wiley.com/doi/10.1002/9781394180042.ch4" target="_blank" rel="noopener">Wiley</a>.</li>
+    <li>S. W. Ellingson, <i>Electromagnetics</i>, sección 9.6 «Wave Polarization» — libre y en abierto, buena para alumnos: <a href="https://eng.libretexts.org/Bookshelves/Electrical_Engineering/Electro-Optics/Book:_Electromagnetics_I_(Ellingson)/09:_Plane_Waves_in_Loseless_Media/9.06:_Wave_Polarization" target="_blank" rel="noopener">LibreTexts</a>.</li>
+    <li>MathWorks, documentación de Phased Array System Toolbox, «Polarized Fields» — explicación clara del convenio IEEE: <a href="https://www.mathworks.com/help/phased/ug/polarized-fields.html" target="_blank" rel="noopener">mathworks.com</a>.</li>
+    <li>T. Robishaw y C. Heiles, <i>The Measurement of Polarization in Radio Astronomy</i> — repaso de los convenios y de lo fácil que es equivocarse: <a href="https://arxiv.org/abs/1806.07391" target="_blank" rel="noopener">arXiv:1806.07391</a>.</li>
+    <li>W. van Straten et al., <i>An Introduction to Single-Antenna Radio Astronomical Polarimetry</i> — hemisferios de la esfera según IEEE: <a href="https://arxiv.org/abs/2202.07818" target="_blank" rel="noopener">arXiv:2202.07818</a>.</li>
+    <li>M. Born y E. Wolf, <i>Principles of Optics</i> — referencia clásica para Stokes y la esfera de Poincaré.</li>
+    <li>NOAA JetStream, «Dual polarization» — para los ejemplos de radar: <a href="https://noaa.gov/jetstream/dual-polarization" target="_blank" rel="noopener">noaa.gov</a>.</li>
+  </ul>
+
+  <h3>Autoría</h3>
+  <p>Desarrollado por modulati0ns con la asistencia de Claude (Anthropic), 2026. Libre para usar, proyectar y adaptar con fines docentes. Si detectas un error de física o de convenio, se agradece el aviso: la parte de convenios es donde más fácil es colarse.</p>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<p class="sr-only" id="live" aria-live="polite"></p>
+
+<script>
+(function(){
+"use strict";
+
+/* ===================== estado ===================== */
+var S = {
+  Ax:1, Ay:0.6, delta:90, waves:3, speed:1, playing:true,
+  showE:true, showB:true, showVec:true, showPlane:true, showGrid:true, showComp:false,
+  yaw:-1.15, pitch:0.30, zoom:1, t:0
+};
+var LAM = 2, K = 2*Math.PI/LAM, OMEGA = 2*Math.PI/3;   /* ω = 2π/T0, coherente con v = λ/T0 */
+var CE = "#f2a01e", CB = "#7d8bff", CHI = "#dfeaff", CGRID = "#2b4160", CAX = "#8399b4";
+var CNEG = "#33b5a0";   /* semiciclo negativo de E: ni ámbar ni el violeta de B */
+var CPAT = "#93a7c0";   /* el patrón es un diagrama, no un campo: neutro */
+
+var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+if (reduced) S.playing = false;
+
+function clamp(v,a,b){ return v<a?a:(v>b?b:v); }
+function rad(d){ return d*Math.PI/180; }
+function hz(){ return S.waves*LAM/2; }
+/* ===================== generador de onda =====================
+   Una sola fuente alimenta las dos vistas. El campo en cualquier punto es
+   lo que hizo la fuente en el instante retardado tau = t − distancia/v.
+   En el vacío no hay dispersión, así que la forma de onda viaja intacta. */
+var T0 = 3;        /* periodo base de las ondas predefinidas, en segundos */
+var GEN = { src:"preset", wave:"sine" };
+S.mode = "plane";  /* "plane" | "space" */
+S.axis = "x";
+
+function waveAt(u){
+  u = u - Math.floor(u);
+  var d, x;
+  switch(GEN.wave){
+    case "tri":   return 4*Math.abs(u-0.5)-1;
+    case "sq":    return (u<0.25||u>=0.75) ? 1 : -1;
+    case "saw":   return 1-2*u;
+    /* a la sinc hay que quitarle su valor medio: un campo con componente
+       continua no se radia. Media 0,143577 y renormalización a pico 1. */
+    case "sinc":  x=(u-0.5)*2*Math.PI*3.5;
+                  return ((Math.abs(x)<1e-9 ? 1 : Math.sin(x)/x)-0.143577)*1.167647;
+    case "pulse": d=(u-0.5)/0.04; return -d*Math.exp(0.5-d*d/2);   /* monociclo gaussiano: sin componente continua */
+    default:      return Math.cos(2*Math.PI*u);
+  }
+}
+function refPeriod(){ return T0; }
+
+/* estado del gesto manual: posición actual de la fuente, si el puntero la
+   sostiene, y si el usuario ya ha dibujado alguna vez */
+var srcX=0, srcY=0, srcHold=false, everDrawn=false;
+
+/* registro circular de la fuente: canales 0 y 1 = componentes x e y del gesto */
+var RATE=60, RING=1600, ring=new Float32Array(RING*2), rhead=0, racc=0;
+var V0 = LAM/T0;                     /* velocidad de fase de la escena */
+function vProp(){ return V0; }
+function pushSrc(a,b){ rhead=(rhead+1)%RING; ring[rhead*2]=a; ring[rhead*2+1]=b; }
+function delayed(sec){
+  var idx=sec*RATE;
+  if(!(idx>=0)) idx=0;
+  if(idx>RING-2) return [0,0];
+  var i0=Math.floor(idx), f=idx-i0;
+  var a=((rhead-i0)%RING+RING)%RING, b=((rhead-i0-1)%RING+RING)%RING;
+  return [ring[a*2]*(1-f)+ring[b*2]*f, ring[a*2+1]*(1-f)+ring[b*2+1]*f];
+}
+function clearRing(){ ring.fill(0); everDrawn=false; }
+
+/* valor escalar del generador en el instante retardado tau */
+function scalarAt(tau){
+  if(GEN.src==="manual"){ var v=delayed(S.t-tau); return S.axis==="y" ? v[1] : v[0]; }
+  return waveAt(tau/T0);
+}
+/* las dos componentes transversales: el desfase es un retardo temporal real,
+   lo que generaliza la polarización a cualquier forma de onda */
+function genVec(tau){
+  if(GEN.src==="manual") return delayed(S.t-tau);
+  var sh=S.delta/360*refPeriod();
+  return [S.Ax*scalarAt(tau), S.Ay*scalarAt(tau-sh)];
+}
+function Efun(z){ return genVec(S.t-(z+hz())/V0); }
+function Bfun(z){ var e=Efun(z); return [-e[1], e[0]]; }
+
+function $(id){ return document.getElementById(id); }
+var toastEl = $("toast"), toastTimer = null;
+function toast(msg){
+  toastEl.textContent = msg; toastEl.classList.add("on");
+  clearTimeout(toastTimer); toastTimer = setTimeout(function(){ toastEl.classList.remove("on"); }, 2600);
+}
+function store(key, val){
+  try { if(val===undefined) return localStorage.getItem(key); localStorage.setItem(key,val); } catch(e){ return null; }
+}
+
+/* ===================== canvas principal ===================== */
+var cv = $("stage"), ctx = cv.getContext("2d");
+var W=0, H=0, DPR=1, focal=0, visible=true;
+
+function resize(){
+  var r = cv.getBoundingClientRect();
+  DPR = Math.min(window.devicePixelRatio||1, 2);
+  W = Math.max(1,Math.round(r.width)); H = Math.max(1,Math.round(r.height));
+  cv.width = Math.round(W*DPR); cv.height = Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+if (window.ResizeObserver) new ResizeObserver(resize).observe(cv);
+window.addEventListener("resize", resize);
+if (window.IntersectionObserver){
+  new IntersectionObserver(function(es){ visible = es[0].isIntersecting; }, {threshold:0.02}).observe(cv);
+}
+
+function camR(){ return S.mode==="space" ? RMAX*1.04 : Math.hypot(hz(), 1.5); }
+function camD(){ return 3*camR(); }
+var CY=1,SY=0,CP=1,SP=0;
+function updateCam(){ CY=Math.cos(S.yaw); SY=Math.sin(S.yaw); CP=Math.cos(S.pitch); SP=Math.sin(S.pitch); }
+function raw(x,y,z){
+  var cy=CY, sy=SY, cp=CP, sp=SP;
+  var X=x*cy - z*sy, Z=x*sy + z*cy;
+  var Y=y*cp - Z*sp, Z2=y*sp + Z*cp;
+  var d=Math.max(0.35, camD()-Z2);
+  return { xn:X/d, yn:Y/d, d:d };
+}
+function P(x,y,z){ var r=raw(x,y,z); return { x:W/2+r.xn*focal, y:H/2-r.yn*focal, d:r.d }; }
+function fitFocal(){
+  updateCam();
+  var a=1.5, h=hz(), mx=1e-6, my=1e-6, i, r, target;
+  if(S.mode==="space"){
+    /* la escena es una esfera: el encuadre no depende de la orientación,
+       así que al girar no cambia la escala */
+    var R=RMAX*1.04, D=camD();
+    target = 0.45*Math.min(W,H)*S.zoom*Math.sqrt(D*D-R*R)/R;
+    focal = focal ? focal+(target-focal)*0.22 : target;
+    return;
+  }
+  for(i=0;i<8;i++){
+    r = raw((i&1)?a:-a, (i&2)?a:-a, (i&4)?h:-h);
+    mx=Math.max(mx,Math.abs(r.xn)); my=Math.max(my,Math.abs(r.yn));
+  }
+  var target = Math.min(W*0.455/mx, H*0.455/my)*S.zoom;
+  focal = focal ? focal + (target-focal)*0.22 : target;
+}
+function alphaOf(d){ var R=camR(), D=camD(); return clamp(1.12-((d-(D-R))/(2*R))*0.8, 0.3, 1); }
+function rgba(hex,a){ var n=parseInt(hex.slice(1),16); return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a.toFixed(3)+")"; }
+function seg(a,b,color,alpha,w){ ctx.strokeStyle=rgba(color,alpha); ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+function arrow(A,B,color,alpha,w){
+  var dx=B.x-A.x, dy=B.y-A.y, L=Math.hypot(dx,dy);
+  ctx.strokeStyle=rgba(color,alpha); ctx.lineWidth=w; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(A.x,A.y); ctx.lineTo(B.x,B.y); ctx.stroke();
+  if(L<7) return;
+  var hl=Math.min(10,L*0.4), ux=dx/L, uy=dy/L, px=-uy, py=ux;
+  ctx.fillStyle=rgba(color,alpha); ctx.beginPath(); ctx.moveTo(B.x,B.y);
+  ctx.lineTo(B.x-ux*hl+px*hl*0.42, B.y-uy*hl+py*hl*0.42);
+  ctx.lineTo(B.x-ux*hl-px*hl*0.42, B.y-uy*hl-py*hl*0.42);
+  ctx.closePath(); ctx.fill();
+}
+function label(txt,p,color,alpha,size,align){
+  ctx.font="500 "+(size||12)+'px "Archivo",system-ui,sans-serif';
+  ctx.textAlign=align||"center"; ctx.textBaseline="middle";
+  ctx.fillStyle=rgba(color,alpha); ctx.fillText(txt,p.x,p.y);
+}
+
+/* ===================== escena ===================== */
+function drawGrid(){
+  var h=hz(), a=1.25, i, z, x, nz=S.waves*4;
+  for(i=0;i<=nz;i++){
+    z=-h+(2*h)*i/nz;
+    seg(P(-a,0,z), P(a,0,z), CGRID, 0.28, 1);
+    seg(P(0,-a,z), P(0,a,z), CGRID, 0.28, 1);
+  }
+  for(i=-1;i<=1;i++){
+    x=i*a;
+    seg(P(x,0,-h), P(x,0,h), CGRID, 0.32, 1);
+    seg(P(0,x,-h), P(0,x,h), CGRID, 0.32, 1);
+  }
+}
+function drawAxes(){
+  var h=hz(), a=1.45, i, z;
+  seg(P(0,0,-h), P(0,0,h), CAX, 0.5, 1.4);
+  arrow(P(0,0,h), P(0,0,h+0.5), CAX, 0.85, 1.6);
+  label("z · propagación", P(0,0,h+0.92), CAX, 0.95, 12.5);
+  arrow(P(0,0,-h), P(a,0,-h), CAX, 0.55, 1.3);
+  arrow(P(0,0,-h), P(0,a,-h), CAX, 0.55, 1.3);
+  label("x", P(a+0.2,0,-h), CAX, 0.95, 12.5);
+  label("y", P(0,a+0.2,-h), CAX, 0.95, 12.5);
+  for(i=1;i<S.waves;i++){
+    z=-h+i*LAM;
+    seg(P(-0.08,0,z), P(0.08,0,z), CAX, 0.5, 1.2);
+    label(i+"λ", P(0,-0.26,z), CAX, 0.6, 11);
+  }
+}
+function drawField(fn, color, showVec, showComp){
+  var h=hz(), N=260, i, z, v, pts=[], base=[], cx=[], cy=[];
+  for(i=0;i<=N;i++){
+    z=-h+(2*h)*i/N; v=fn(z);
+    pts.push(P(v[0],v[1],z)); base.push(P(0,0,z));
+    if(showComp){ cx.push(P(v[0],0,z)); cy.push(P(0,v[1],z)); }
+  }
+  if(showComp){
+    for(i=0;i<N;i++){
+      seg(cx[i],cx[i+1],color,alphaOf(cx[i].d)*0.34,1.3);
+      seg(cy[i],cy[i+1],color,alphaOf(cy[i].d)*0.34,1.3);
+    }
+  }
+  for(i=0;i<N;i++) seg(pts[i],pts[i+1],color,alphaOf((pts[i].d+pts[i+1].d)/2)*0.95,2.1);
+  if(showVec){
+    var step=Math.max(4,Math.round(N/(S.waves*9)));
+    for(i=0;i<=N;i+=step) arrow(base[i],pts[i],color,alphaOf(pts[i].d)*0.6,1.4);
+  }
+  if(showComp){
+    ctx.setLineDash([3,3]);
+    var st2=Math.max(6,Math.round(N/(S.waves*6)));
+    for(i=0;i<=N;i+=st2){
+      seg(cx[i],pts[i],color,alphaOf(pts[i].d)*0.3,1);
+      seg(cy[i],pts[i],color,alphaOf(pts[i].d)*0.3,1);
+    }
+    ctx.setLineDash([]);
+  }
+}
+function drawPlane(){
+  var h=hz(), i, ang, v, p, prev=null;
+  for(i=0;i<=56;i++){
+    ang=i/56*2*Math.PI; p=P(1.32*Math.cos(ang),1.32*Math.sin(ang),h);
+    if(prev) seg(prev,p,"#5a7794",0.38,1);
+    prev=p;
+  }
+  prev=null;
+  if(GEN.src==="preset"){
+    for(i=0;i<=140;i++){
+      v=figAt(i/140);
+      p=P(v[0],v[1],h);
+      if(prev) seg(prev,p,CHI,0.55,1.6);
+      prev=p;
+    }
+  } else {
+    var d0=(2*h)/vProp();
+    for(i=0;i<=70;i++){
+      v=delayed(d0+(i/70)*2.6); p=P(v[0],v[1],h);
+      if(prev) seg(prev,p,CHI,0.5*(1-i/70),1.5);
+      prev=p;
+    }
+    /* marcador de la fuente en el extremo de entrada */
+    prev=null;
+    for(i=0;i<=40;i++){
+      ang=i/40*2*Math.PI; p=P(1.32*Math.cos(ang),1.32*Math.sin(ang),-h);
+      if(prev) seg(prev,p,"#5a7794",0.3,1);
+      prev=p;
+    }
+    var s=Efun(-h), os=P(0,0,-h);
+    arrow(os,P(s[0],s[1],-h),CE,0.75,2.4);
+    label("fuente",P(0,-1.55,-h),"#8ba4c4",0.85,11.5);
+  }
+  var e=Efun(h), b=Bfun(h), o=P(0,0,h);
+  if(S.showB) arrow(o,P(b[0],b[1],h),CB,0.95,3);
+  if(S.showE) arrow(o,P(e[0],e[1],h),CE,1,3);
+}
+function render(){
+  if(S.mode==="space") return renderSpace();
+  fitFocal();
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#0f1116"); g.addColorStop(1,"#141824");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  var rg=ctx.createRadialGradient(W*0.5,H*0.52,10,W*0.5,H*0.52,Math.max(W,H)*0.62);
+  rg.addColorStop(0,"rgba(122,136,168,.13)"); rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+
+  if(S.showGrid) drawGrid();
+  drawAxes();
+  if(S.showB) drawField(Bfun,CB,S.showVec,false);
+  if(S.showE) drawField(Efun,CE,S.showVec,S.showComp);
+  if(S.showPlane) drawPlane();
+
+  var h=hz(), zl=-h+(2*h)*0.18, p;
+  if(S.showE){ var e=Efun(zl); p=P(e[0],e[1],zl); label("E",{x:p.x+13,y:p.y-11},CE,0.95,14); }
+  if(S.showB){ var b=Bfun(zl); p=P(b[0],b[1],zl); label("B",{x:p.x+13,y:p.y-11},CB,0.95,14); }
+
+  if(GEN.src==="manual"){
+    if(!everDrawn) label("Arrastra dentro del generador para crear tu onda",{x:W/2,y:H*0.46},"#9db2cd",0.9,14);
+  } else if(S.Ax<0.005 && S.Ay<0.005){
+    label("Sube alguna amplitud para generar el campo",{x:W/2,y:H*0.5},"#9db2cd",0.9,14);
+  }
+}
+
+/* ===================== plano de observación ===================== */
+var mini=$("mini"), mctx=mini.getContext("2d");
+function drawMini(){
+  if(S.mode==="space") return drawEplane();
+  var w=380, c=w/2, R=w*0.35, i, ang, x, y;
+  mctx.clearRect(0,0,w,w);
+  mctx.fillStyle="#0f1116"; mctx.fillRect(0,0,w,w);
+  mctx.strokeStyle="rgba(125,155,190,.33)"; mctx.lineWidth=1.2;
+  mctx.beginPath();
+  mctx.moveTo(c-R*1.25,c); mctx.lineTo(c+R*1.25,c);
+  mctx.moveTo(c,c-R*1.25); mctx.lineTo(c,c+R*1.25); mctx.stroke();
+  mctx.font='500 15px "Archivo",system-ui,sans-serif';
+  mctx.fillStyle="rgba(165,190,220,.85)"; mctx.textAlign="center"; mctx.textBaseline="middle";
+  mctx.fillText("x", c+R*1.25+13, c); mctx.fillText("y", c, c-R*1.25-13);
+
+  var h=hz();
+  if(GEN.src==="preset"){
+    mctx.strokeStyle="rgba(223,234,255,.62)"; mctx.lineWidth=2; mctx.beginPath();
+    for(i=0;i<=160;i++){
+      var fv=figAt(i/160);
+      x=c+fv[0]*R; y=c-fv[1]*R;
+      i?mctx.lineTo(x,y):mctx.moveTo(x,y);
+    }
+    mctx.closePath(); mctx.stroke();
+  } else {
+    var d0=(2*h)/vProp(), v0, px0=0, py0=0;
+    mctx.lineWidth=2; mctx.lineCap="round";
+    for(i=0;i<=90;i++){
+      v0=delayed(d0+(i/90)*2.6);
+      x=c+v0[0]*R; y=c-v0[1]*R;
+      if(i){
+        mctx.strokeStyle="rgba(223,234,255,"+(0.6*(1-i/90)).toFixed(3)+")";
+        mctx.beginPath(); mctx.moveTo(px0,py0); mctx.lineTo(x,y); mctx.stroke();
+      }
+      px0=x; py0=y;
+    }
+  }
+
+  var e=Efun(h), b=Bfun(h);
+  function vec(vx,vy,color,wid){
+    var X=c+vx*R, Y=c-vy*R, dx=X-c, dy=Y-c, L=Math.hypot(dx,dy);
+    mctx.strokeStyle=color; mctx.fillStyle=color; mctx.lineWidth=wid; mctx.lineCap="round";
+    mctx.beginPath(); mctx.moveTo(c,c); mctx.lineTo(X,Y); mctx.stroke();
+    if(L<9) return;
+    var hl=13, ux=dx/L, uy=dy/L, px=-uy, py=ux;
+    mctx.beginPath(); mctx.moveTo(X,Y);
+    mctx.lineTo(X-ux*hl+px*hl*0.45, Y-uy*hl+py*hl*0.45);
+    mctx.lineTo(X-ux*hl-px*hl*0.45, Y-uy*hl-py*hl*0.45);
+    mctx.closePath(); mctx.fill();
+  }
+  if(S.showB) vec(b[0],b[1],CB,3.6);
+  if(S.showE) vec(e[0],e[1],CE,3.6);
+
+  var s3=stokes().s3;
+  if(Math.abs(s3)>0.06){
+    var dir=s3>0?1:-1, r=R*1.16;
+    mctx.strokeStyle="rgba(145,175,210,.5)"; mctx.lineWidth=1.6;
+    mctx.beginPath(); mctx.arc(c,c,r,-0.95,-0.12,false); mctx.stroke();
+    var a2=dir>0?-0.95:-0.12, ex=c+r*Math.cos(a2), ey=c+r*Math.sin(a2);
+    var tg=dir>0?a2-Math.PI/2:a2+Math.PI/2;
+    mctx.fillStyle="rgba(145,175,210,.75)"; mctx.beginPath(); mctx.moveTo(ex,ey);
+    mctx.lineTo(ex+11*Math.cos(tg+0.36), ey+11*Math.sin(tg+0.36));
+    mctx.lineTo(ex+11*Math.cos(tg-0.36), ey+11*Math.sin(tg-0.36));
+    mctx.closePath(); mctx.fill();
+  }
+}
+
+/* ===================== esfera de Poincaré ===================== */
+var poinc=$("poinc"), pctx=poinc.getContext("2d");
+var AZ=0.62, EL=0.42;
+function p3(s1,s2,s3){
+  var u=-s1*Math.sin(AZ)+s2*Math.cos(AZ), w=s1*Math.cos(AZ)+s2*Math.sin(AZ), v=s3;
+  return { x:u, y:-(v*Math.cos(EL)-w*Math.sin(EL)), d:(v*Math.sin(EL)+w*Math.cos(EL)) };
+}
+/* La figura que recorre la punta de E durante un periodo. Con una sinusoide es
+   la elipse de polarización de siempre; con cualquier otra forma de onda es la
+   curva de Lissajous que le corresponde. */
+function figAt(u){
+  var tau=u*refPeriod(), sh=S.delta/360*refPeriod();
+  return [S.Ax*waveAt(tau/T0), S.Ay*waveAt((tau-sh)/T0)];
+}
+/* Los parámetros de Stokes se obtienen siempre por promedios temporales: con la
+   sinusoide coinciden exactamente con las fórmulas analíticas, y con cualquier
+   otra forma de onda siguen describiendo el estado medio. El signo de s₃ sale
+   del sentido de giro y su módulo de cerrar la esfera. */
+var liveEnergy=0;
+function presetStokes(){
+  var N=256, i, v, ex2=0, ey2=0, exy=0, cross=0, prev=null;
+  for(i=0;i<=N;i++){
+    v=figAt(i/N);
+    ex2+=v[0]*v[0]; ey2+=v[1]*v[1]; exy+=v[0]*v[1];
+    if(prev) cross += prev[0]*(v[1]-prev[1]) - prev[1]*(v[0]-prev[0]);
+    prev=v;
+  }
+  var s0=ex2+ey2;
+  liveEnergy=s0/(N+1);
+  if(s0<1e-6) return {s1:0,s2:0,s3:0};
+  var s1=(ex2-ey2)/s0, s2=2*exy/s0, lin=Math.hypot(s1,s2);
+  return { s1:s1, s2:s2, s3:Math.sqrt(Math.max(0,1-lin*lin))*(cross>=0?1:-1) };
+}
+function liveStokes(){
+  var N=180, i, a, b, ex, ey, ex2=0, ey2=0, exy=0, cross=0, prev=null;
+  for(i=N;i>=0;i--){
+    a=((rhead-i)%RING+RING)%RING;
+    ex=ring[a*2]; ey=ring[a*2+1];
+    ex2+=ex*ex; ey2+=ey*ey; exy+=ex*ey;
+    if(prev) cross += prev[0]*(ey-prev[1]) - prev[1]*(ex-prev[0]);
+    prev=[ex,ey];
+  }
+  var s0=ex2+ey2;
+  liveEnergy = s0/(N+1);
+  if(s0<1e-4) return {s1:0,s2:0,s3:0};
+  var s1=(ex2-ey2)/s0, s2=(2*exy)/s0;
+  var lin=Math.hypot(s1,s2);
+  var s3=Math.sqrt(Math.max(0,1-lin*lin))*(cross>=0?1:-1);
+  return { s1:s1, s2:s2, s3:s3 };
+}
+function stokes(){
+  return GEN.src==="preset" ? presetStokes() : liveStokes();
+}
+function drawPoincare(){
+  if(S.mode==="space") return drawHplane();
+  var w=380, c=w/2, R=w*0.32, i, ang, p, prev;
+  pctx.clearRect(0,0,w,w);
+  pctx.fillStyle="#0f1116"; pctx.fillRect(0,0,w,w);
+  pctx.strokeStyle="rgba(110,140,175,.45)"; pctx.lineWidth=1.4;
+  pctx.beginPath(); pctx.arc(c,c,R,0,2*Math.PI); pctx.stroke();
+  function circ(fn,af,ab){
+    prev=null;
+    for(i=0;i<=140;i++){
+      ang=i/140*2*Math.PI; p=fn(ang);
+      var q={x:c+p.x*R, y:c+p.y*R, d:p.d};
+      if(prev){
+        pctx.strokeStyle="rgba(130,160,195,"+(((prev.d+q.d)/2>0)?af:ab)+")"; pctx.lineWidth=1.1;
+        pctx.beginPath(); pctx.moveTo(prev.x,prev.y); pctx.lineTo(q.x,q.y); pctx.stroke();
+      }
+      prev=q;
+    }
+  }
+  circ(function(a){ return p3(Math.cos(a),Math.sin(a),0); },0.6,0.15);
+  circ(function(a){ return p3(Math.cos(a),0,Math.sin(a)); },0.32,0.1);
+
+  var marks=[[1,0,0,"H"],[-1,0,0,"V"],[0,1,0,"+45°"],[0,-1,0,"−45°"],[0,0,1,"dextro"],[0,0,-1,"levo"]];
+  pctx.font='500 13px "Archivo",system-ui,sans-serif';
+  pctx.textAlign="center"; pctx.textBaseline="middle";
+  for(i=0;i<marks.length;i++){
+    p=p3(marks[i][0],marks[i][1],marks[i][2]);
+    pctx.fillStyle="rgba(150,175,205,"+(p.d>0?0.9:0.33)+")";
+    pctx.fillText(marks[i][3], c+p.x*R*1.22, c+p.y*R*1.22);
+  }
+  var st=stokes();
+  if(GEN.src!=="preset" && liveEnergy<0.004){
+    pctx.fillStyle="rgba(150,175,205,.5)";
+    pctx.font='400 12px "Archivo",system-ui,sans-serif';
+    pctx.fillText("sin señal", c, c+R*1.55);
+    return;
+  }
+  p=p3(st.s1,st.s2,st.s3);
+  var px=c+p.x*R, py=c+p.y*R, eq=p3(st.s1,st.s2,0);
+  pctx.strokeStyle="rgba(242,160,30,.45)"; pctx.setLineDash([3,3]); pctx.lineWidth=1.2;
+  pctx.beginPath(); pctx.moveTo(px,py); pctx.lineTo(c+eq.x*R,c+eq.y*R); pctx.stroke();
+  pctx.setLineDash([]);
+  pctx.fillStyle="rgba(242,160,30,"+(p.d>0?1:0.45)+")";
+  pctx.beginPath(); pctx.arc(px,py,7,0,2*Math.PI); pctx.fill();
+  pctx.strokeStyle="rgba(15,17,22,.9)"; pctx.lineWidth=2; pctx.stroke();
+}
+
+/* ===================== lecturas ===================== */
+var lastTipo="";
+function describe(){
+  var st=stokes();
+  if(GEN.src!=="preset"){
+    var lin=Math.hypot(st.s1,st.s2);
+    var tp = liveEnergy<0.004 ? "Sin señal" : (lin>0.88 ? "Casi lineal" : (lin<0.25 ? "Casi circular" : "Elíptica"));
+    var sn = (liveEnergy<0.004 || lin>0.88) ? "—" : (st.s3>0 ? "dextrógira (IEEE)" : "levógira (IEEE)");
+    return { tipo:tp, sent:sn, psi:"—", ar:"—", st:st };
+  }
+  if(S.Ax<0.005 && S.Ay<0.005) return { tipo:"Sin campo", sent:"—", psi:"—", ar:"—", st:st };
+  var chi=0.5*Math.asin(clamp(st.s3,-1,1));
+  var tan=Math.abs(Math.tan(chi));
+  var arv = tan<1e-6 ? Infinity : 1/tan;
+  var ardb = arv===Infinity ? Infinity : 20*Math.log10(arv);
+  var ps=0.5*Math.atan2(st.s2,st.s1)*180/Math.PI;
+  if(ps<0) ps+=180;
+  if(ps>=179.95) ps-=180;
+  var psTxt=ps.toFixed(1).replace(".",",")+"°";
+  var tipo, ar, psi;
+  if(Math.abs(st.s3)<0.02){ tipo="Lineal"; ar="∞ (recta)"; psi=psTxt; }
+  else if(ardb<0.6){ tipo="Circular"; ar="1.00 · 0.0 dB"; psi="indefinida"; }
+  else { tipo="Elíptica"; ar=arv.toFixed(2)+" · "+ardb.toFixed(1)+" dB"; psi=psTxt; }
+  var sent = Math.abs(st.s3)<0.02 ? "—" : (st.s3>0 ? "dextrógira (IEEE)" : "levógira (IEEE)");
+  return { tipo:tipo, sent:sent, psi:psi, ar:ar, st:st };
+}
+function updateFacts(){
+  if(S.mode==="space"){ updateSpaceFacts(); updateShareUrl(); return; }
+  var r=describe();
+  $("rTipo").textContent=r.tipo;
+  $("rSent").textContent=r.sent;
+  $("rPsi").textContent=r.psi;
+  $("rAR").textContent=r.ar;
+  $("rStokes").textContent=r.st.s1.toFixed(2)+"  "+r.st.s2.toFixed(2)+"  "+r.st.s3.toFixed(2);
+  $("rDelta").textContent = GEN.src==="manual" ? "—" : (S.delta>0?"+":"")+Math.round(S.delta)+"°";
+  var tag=r.tipo+" "+r.sent;
+  if(tag!==lastTipo){ lastTipo=tag; $("live").textContent="Polarización "+r.tipo+(r.sent!=="—"?", "+r.sent:""); }
+  updateShareUrl();
+}
+
+/* ===================== enlace compartible ===================== */
+var baseUrl = location.href.split("#")[0];
+var lastHashWrite = 0;
+function encodeState(){
+  return "#ax="+S.Ax.toFixed(2)+"&ay="+S.Ay.toFixed(2)+"&d="+Math.round(S.delta)+"&n="+S.waves
+    +"&m="+S.mode+"&s="+GEN.src+(GEN.src==="preset"?"&w="+GEN.wave:"")+(S.mode==="space"?"&a="+S.ant:"");
+}
+var lastHash="";
+function updateShareUrl(){
+  var h=encodeState();
+  if(h===lastHash) return;
+  $("shareUrl").value = baseUrl + h;
+  var now = Date.now();
+  if(paramAnim || now-lastHashWrite < 700) return;
+  lastHash = h;
+  lastHashWrite = now;
+  try { history.replaceState(null,"",h); } catch(e){}
+}
+function readHash(){
+  var h=location.hash.replace(/^#/,""); if(!h) return;
+  var parts=h.split("&"), i, kv, o={};
+  for(i=0;i<parts.length;i++){ kv=parts[i].split("="); o[kv[0]]= (kv[0]==="m"||kv[0]==="a"||kv[0]==="s"||kv[0]==="w") ? kv[1] : parseFloat(kv[1]); }
+  if(o.m==="space"){ S.mode="space"; if(typeof o.a==="string" && ANT[o.a]) S.ant=o.a; }
+  if(o.s==="preset"||o.s==="manual") GEN.src=o.s;
+  if(typeof o.w==="string") GEN.wave=o.w;
+  if(isFinite(o.ax)) S.Ax=clamp(o.ax,0,1);
+  if(isFinite(o.ay)) S.Ay=clamp(o.ay,0,1);
+  if(isFinite(o.d))  S.delta=clamp(o.d,-180,180);
+  if(isFinite(o.n))  S.waves=clamp(Math.round(o.n),1,5);
+}
+
+/* ===================== interacción con la escena ===================== */
+var dragging=false, lastX=0, lastY=0, camAnim=null, nudged=false;
+var ptrs={}, ptrN=0, pinchD=0, pinchZ=1;
+function hideNudge(){
+  if(nudged) return; nudged=true;
+  var n=$("nudge"); n.style.opacity="0"; setTimeout(function(){ n.style.display="none"; },600);
+}
+function ptrList(){ var k, v=[]; for(k in ptrs) if(Object.prototype.hasOwnProperty.call(ptrs,k)) v.push(ptrs[k]); return v; }
+function ptrDist(){ var v=ptrList(); return v.length<2?0:Math.hypot(v[0].x-v[1].x, v[0].y-v[1].y); }
+cv.addEventListener("pointerdown",function(e){
+  if(!ptrs[e.pointerId]) ptrN++;
+  ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  cv.setPointerCapture(e.pointerId); camAnim=null; hideNudge();
+  if(ptrN===1){ dragging=true; lastX=e.clientX; lastY=e.clientY; cv.classList.add("drag"); }
+  else if(ptrN===2){ dragging=false; cv.classList.remove("drag"); pinchD=ptrDist(); pinchZ=S.zoom; }
+});
+cv.addEventListener("pointermove",function(e){
+  if(!ptrs[e.pointerId]) return;
+  ptrs[e.pointerId].x=e.clientX; ptrs[e.pointerId].y=e.clientY;
+  if(ptrN>=2){
+    var d=ptrDist();
+    if(pinchD>6 && d>6) S.zoom=clamp(pinchZ*d/pinchD, 0.5, 3.2);
+    return;
+  }
+  if(!dragging) return;
+  /* la velocidad de giro va con el tamaño del lienzo: arrastrar de lado a lado
+     gira algo menos de una vuelta, en móvil y en escritorio por igual */
+  var kx=Math.PI*1.55/Math.max(320,W), ky=Math.PI/Math.max(260,H);
+  S.yaw += (e.clientX-lastX)*kx;
+  S.pitch = clamp(S.pitch+(e.clientY-lastY)*ky, -1.45, 1.45);
+  lastX=e.clientX; lastY=e.clientY; setViewPressed(null);
+});
+function endDrag(e){
+  if(e && ptrs[e.pointerId]){ delete ptrs[e.pointerId]; ptrN=Math.max(0,ptrN-1); }
+  var v=ptrList();
+  if(v.length===1){ dragging=true; lastX=v[0].x; lastY=v[0].y; }
+  else if(v.length===0){ dragging=false; cv.classList.remove("drag"); }
+}
+cv.addEventListener("pointerup",endDrag);
+cv.addEventListener("pointercancel",endDrag);
+cv.addEventListener("wheel",function(e){
+  e.preventDefault(); hideNudge();
+  /* algunos navegadores dan líneas o páginas en vez de píxeles */
+  var dy=e.deltaY*(e.deltaMode===1?16:(e.deltaMode===2?H:1));
+  dy=clamp(dy,-110,110);
+  S.zoom=clamp(S.zoom*Math.exp(-dy*0.0009), 0.5, 3.2);
+},{passive:false});
+
+var VIEWS={ iso:[-1.15,0.30], front:[0,0], plan:[-Math.PI/2,1.5533], elev:[-Math.PI/2,0] };
+function setViewPressed(name){
+  var bs=document.querySelectorAll(".views button"), i;
+  for(i=0;i<bs.length;i++) bs[i].setAttribute("aria-pressed", String(bs[i].getAttribute("data-view")===name));
+}
+function goView(name){
+  var v=VIEWS[name]; if(!v) return;
+  if(reduced){ S.yaw=v[0]; S.pitch=v[1]; S.zoom=1; }
+  else camAnim={ y0:S.yaw, p0:S.pitch, y1:v[0], p1:v[1], z0:S.zoom, z1:1, k:0 };
+  setViewPressed(name); hideNudge();
+}
+Array.prototype.forEach.call(document.querySelectorAll(".views button"),function(b){
+  b.addEventListener("click",function(){ goView(b.getAttribute("data-view")); });
+});
+
+cv.addEventListener("keydown",function(e){
+  var k=e.key, step=0.12, handled=true;
+  if(k==="ArrowLeft") S.yaw-=step;
+  else if(k==="ArrowRight") S.yaw+=step;
+  else if(k==="ArrowUp") S.pitch=clamp(S.pitch-step,-1.45,1.45);
+  else if(k==="ArrowDown") S.pitch=clamp(S.pitch+step,-1.45,1.45);
+  else if(k==="+"||k==="=") S.zoom=clamp(S.zoom*1.12,0.55,3);
+  else if(k==="-"||k==="_") S.zoom=clamp(S.zoom/1.12,0.55,3);
+  else if(k===" ") togglePlay();
+  else if(k==="r"||k==="R") S.t=0;
+  else if(k>="1"&&k<="6"){ var ps=document.querySelectorAll("#presets button")[parseInt(k,10)-1]; if(ps) ps.click(); }
+  else handled=false;
+  if(handled){ e.preventDefault(); camAnim=null; setViewPressed(null); hideNudge(); }
+});
+
+/* ===================== controles ===================== */
+function setSliderUI(){
+  $("ax").value=S.Ax; $("vax").textContent=S.Ax.toFixed(2);
+  $("ay").value=S.Ay; $("vay").textContent=S.Ay.toFixed(2);
+  $("dl").value=Math.round(S.delta); $("vdl").textContent=(S.delta>0?"+":"")+Math.round(S.delta)+"°";
+  $("nw").value=S.waves; $("vnw").textContent=String(S.waves);
+}
+var SNAP=[-180,-135,-90,-45,0,45,90,135,180];
+function snapDelta(v){
+  for(var i=0;i<SNAP.length;i++) if(Math.abs(v-SNAP[i])<=3) return SNAP[i];
+  return v;
+}
+$("ax").addEventListener("input",function(){ updateChromeSoon(); S.Ax=parseFloat(this.value); paramAnim=null; setSliderUI(); updateFacts(); clearPreset(); });
+$("ay").addEventListener("input",function(){ updateChromeSoon(); S.Ay=parseFloat(this.value); paramAnim=null; setSliderUI(); updateFacts(); clearPreset(); });
+$("dl").addEventListener("input",function(){ updateChromeSoon(); S.delta=snapDelta(parseFloat(this.value)); paramAnim=null; setSliderUI(); updateFacts(); clearPreset(); });
+$("nw").addEventListener("input",function(){ S.waves=parseInt(this.value,10); setSliderUI(); updateShareUrl(); });
+$("sp").addEventListener("input",function(){ S.speed=parseFloat(this.value); });
+function bindToggle(id,key){ var el=$(id); S[key]=el.checked; el.addEventListener("change",function(){ S[key]=el.checked; updateChrome(); }); }
+bindToggle("tE","showE"); bindToggle("tB","showB"); bindToggle("tV","showVec");
+bindToggle("tP","showPlane"); bindToggle("tG","showGrid"); bindToggle("tC","showComp");
+
+var playIcon=$("playIcon"), playBtn=$("play");
+function syncPlay(){
+  playIcon.innerHTML = S.playing
+    ? '<rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect>'
+    : '<path d="M8 5.5v13l11-6.5z"></path>';
+  playBtn.setAttribute("aria-label", S.playing?"Pausar la animación":"Reproducir la animación");
+}
+function togglePlay(){ S.playing=!S.playing; syncPlay(); }
+playBtn.addEventListener("click",togglePlay);
+$("rewind").addEventListener("click",function(){ S.t=0; });
+
+var PRESETS={ lh:[1,0,0], lv:[0,1,0], l45:[0.78,0.78,0], l135:[0.78,0.78,180], cd:[0.82,0.82,90], cl:[0.82,0.82,-90], el:[1,0.5,60] };
+function clearPreset(){
+  Array.prototype.forEach.call(document.querySelectorAll("#presets button"),function(b){ b.setAttribute("aria-pressed","false"); });
+}
+var paramAnim=null;
+function setParams(ax,ay,d,animate){
+  if(animate && !reduced){ paramAnim={ a0:S.Ax,b0:S.Ay,d0:S.delta, a1:ax,b1:ay,d1:d, k:0 }; }
+  else { S.Ax=ax; S.Ay=ay; S.delta=d; paramAnim=null; setSliderUI(); updateFacts(); }
+}
+Array.prototype.forEach.call(document.querySelectorAll("#presets button"),function(b){
+  b.addEventListener("click",function(){
+    var p=PRESETS[b.getAttribute("data-p")];
+    setParams(p[0],p[1],p[2],true);
+    clearPreset(); b.setAttribute("aria-pressed","true");
+  });
+});
+
+/* ===================== generador manual ===================== */
+var padCv=$("padCv"), pctx2=padCv.getContext("2d"), padActive=false, padKeys={};
+var sigCv=$("sigCv"), sctx=sigCv.getContext("2d");
+S.axis="x";   /* "x" | "y" | "free" — un dipolo real solo radia sobre un eje */
+
+function setAxis(a){
+  S.axis=a;
+  $("axX").setAttribute("aria-pressed",String(a==="x"));
+  $("axY").setAttribute("aria-pressed",String(a==="y"));
+  $("axF").setAttribute("aria-pressed",String(a==="free"));
+  $("padCap").textContent = S.mode==="space"
+    ? "genera la amplitud radiada"
+    : (a==="x" ? "antena lineal en x" : (a==="y" ? "antena lineal en y" : "dos ejes · plano x–y"));
+  $("padHint").textContent = a==="x" ? "Arrastra a los lados" : (a==="y" ? "Arrastra arriba y abajo" : "Arrastra en cualquier dirección");
+  if(a!=="free"){ if(a==="x") srcY=0; else srcX=0; }
+}
+$("axX").addEventListener("click",function(){ setAxis("x"); });
+$("axY").addEventListener("click",function(){ setAxis("y"); });
+$("axF").addEventListener("click",function(){ setAxis("free"); });
+
+function drawPad(){
+  var w=240, c=w/2, R=w*0.40, i, v, x, y, px=0, py=0;
+  pctx2.clearRect(0,0,w,w);
+  pctx2.fillStyle="#0f1116"; pctx2.fillRect(0,0,w,w);
+  /* el eje activo se ve; el otro queda apagado */
+  var ax=S.axis, aOn="rgba(150,180,215,.45)", aOff="rgba(125,155,190,.14)";
+  pctx2.lineWidth=1.3;
+  pctx2.strokeStyle = (ax==="y") ? aOff : aOn;
+  pctx2.beginPath(); pctx2.moveTo(c-R*1.18,c); pctx2.lineTo(c+R*1.18,c); pctx2.stroke();
+  pctx2.strokeStyle = (ax==="x") ? aOff : aOn;
+  pctx2.beginPath(); pctx2.moveTo(c,c-R*1.18); pctx2.lineTo(c,c+R*1.18); pctx2.stroke();
+  if(ax==="free"){
+    pctx2.setLineDash([3,4]); pctx2.strokeStyle="rgba(125,155,190,.2)";
+    pctx2.beginPath(); pctx2.arc(c,c,R,0,2*Math.PI); pctx2.stroke();
+    pctx2.setLineDash([]);
+    pctx2.lineWidth=2.2; pctx2.lineCap="round";
+    for(i=70;i>=0;i--){
+      v=delayed(i/RATE); x=c+v[0]*R; y=c-v[1]*R;
+      if(i<70){
+        pctx2.strokeStyle="rgba(242,160,30,"+(0.65*(1-i/70)).toFixed(3)+")";
+        pctx2.beginPath(); pctx2.moveTo(px,py); pctx2.lineTo(x,y); pctx2.stroke();
+      }
+      px=x; py=y;
+    }
+  }
+  var e=delayed(0);
+  pctx2.fillStyle=CE;
+  pctx2.beginPath(); pctx2.arc(c+e[0]*R, c-e[1]*R, 6, 0, 2*Math.PI); pctx2.fill();
+  pctx2.strokeStyle="rgba(15,17,22,.85)"; pctx2.lineWidth=2; pctx2.stroke();
+}
+
+/* tira de señal: lo que el generador está produciendo en el origen */
+function drawSignal(){
+  var w=240, h=64, mid=h/2, i, x, y, v;
+  sctx.clearRect(0,0,w,h);
+  sctx.fillStyle="#0f1116"; sctx.fillRect(0,0,w,h);
+  sctx.strokeStyle="rgba(125,155,190,.22)"; sctx.lineWidth=1;
+  sctx.beginPath(); sctx.moveTo(0,mid); sctx.lineTo(w,mid); sctx.stroke();
+  sctx.lineJoin="round"; sctx.lineCap="round";
+
+  function trace(k,color,width){
+    sctx.strokeStyle=color; sctx.lineWidth=width; sctx.beginPath();
+    for(i=0;i<=200;i++){
+      var tau=S.t-(1-i/200)*3;
+      v = GEN.src==="manual" ? delayed(S.t-tau)[k] : (k?S.Ay:S.Ax)*waveAt((tau-(k?S.delta/360*T0:0))/T0);
+      x=(i/200)*w; y=mid-clamp(v,-1.15,1.15)*(mid-5)/1.15;
+      i?sctx.lineTo(x,y):sctx.moveTo(x,y);
+    }
+    sctx.stroke();
+  }
+  if(GEN.src==="manual" && S.axis!=="free"){ trace(S.axis==="x"?0:1,"rgba(242,160,30,.95)",1.9); }
+  else { trace(0,"rgba(242,160,30,.95)",1.8); trace(1,"rgba(51,181,160,.85)",1.5); }
+
+  sctx.font='500 9px "Archivo",system-ui,sans-serif';
+  sctx.fillStyle="rgba(150,175,205,.65)"; sctx.textAlign="right"; sctx.textBaseline="bottom";
+  sctx.fillText("ahora", w-4, h-3);
+  sctx.textAlign="left"; sctx.fillText("hace 3 s", 4, h-3);
+}
+
+function padSet(clientX, clientY){
+  var r=padCv.getBoundingClientRect(), R=r.width*0.40;
+  var ex=(clientX-(r.left+r.width/2))/R, ey=-(clientY-(r.top+r.height/2))/R;
+  if(S.axis==="x") ey=0;
+  else if(S.axis==="y") ex=0;
+  var m=Math.hypot(ex,ey);
+  if(m>1.15){ ex=ex/m*1.15; ey=ey/m*1.15; }
+  srcX=ex; srcY=ey; srcHold=true;
+  if(!everDrawn){ everDrawn=true; $("padHint").hidden=true; }
+}
+padCv.addEventListener("pointerdown",function(e){
+  padActive=true; padCv.setPointerCapture(e.pointerId); padSet(e.clientX,e.clientY); e.preventDefault();
+});
+padCv.addEventListener("pointermove",function(e){ if(padActive) padSet(e.clientX,e.clientY); });
+function padRelease(){ padActive=false; srcHold=false; }
+padCv.addEventListener("pointerup",padRelease);
+padCv.addEventListener("pointercancel",padRelease);
+padCv.addEventListener("keydown",function(e){
+  var k=e.key;
+  if(k==="ArrowLeft"||k==="ArrowRight"||k==="ArrowUp"||k==="ArrowDown"){
+    padKeys[k]=true; srcHold=true; e.preventDefault();
+    if(!everDrawn){ everDrawn=true; $("padHint").hidden=true; }
+  }
+});
+padCv.addEventListener("keyup",function(e){
+  delete padKeys[e.key];
+  if(!padKeys.ArrowLeft && !padKeys.ArrowRight && !padKeys.ArrowUp && !padKeys.ArrowDown) srcHold=false;
+});
+padCv.addEventListener("blur",function(){ padKeys={}; if(!padActive) srcHold=false; });
+
+function advanceGen(dt){
+  var step=1/RATE, guard=0, d=0.035;
+  racc += dt;
+  while(racc>=step && guard<10){
+    racc-=step; guard++;
+    if(S.axis==="y"){
+      if(padKeys.ArrowUp||padKeys.ArrowRight) srcY=clamp(srcY+d,-1.15,1.15);
+      if(padKeys.ArrowDown||padKeys.ArrowLeft) srcY=clamp(srcY-d,-1.15,1.15);
+      srcX=0;
+    } else if(S.axis==="x"){
+      if(padKeys.ArrowRight||padKeys.ArrowUp) srcX=clamp(srcX+d,-1.15,1.15);
+      if(padKeys.ArrowLeft||padKeys.ArrowDown) srcX=clamp(srcX-d,-1.15,1.15);
+      srcY=0;
+    } else {
+      if(padKeys.ArrowLeft) srcX=clamp(srcX-d,-1.15,1.15);
+      if(padKeys.ArrowRight) srcX=clamp(srcX+d,-1.15,1.15);
+      if(padKeys.ArrowUp) srcY=clamp(srcY+d,-1.15,1.15);
+      if(padKeys.ArrowDown) srcY=clamp(srcY-d,-1.15,1.15);
+    }
+    if(!srcHold){ srcX*=0.90; srcY*=0.90; if(Math.abs(srcX)<0.002) srcX=0; if(Math.abs(srcY)<0.002) srcY=0; }
+    pushSrc(srcX,srcY);
+  }
+}
+
+function setMode(m){
+  S.mode = m==="space" ? "space" : "plane";
+  var space = S.mode==="space";
+  $("modePlane").setAttribute("aria-pressed",String(!space));
+  $("modeSpace").setAttribute("aria-pressed",String(space));
+  $("waveBlock").hidden=space;
+  $("sceneBlock").hidden=space;
+  $("showBlock").hidden=space;
+  $("antBlock").hidden=!space;
+  $("layBlock").hidden=!space;
+  $("grp2").hidden = GEN.src==="manual" && !space;
+  document.querySelector(".legend").innerHTML = space
+    ? '<span><i style="background:#f2a01e"></i>E, semiciclo +</span><span><i style="background:#33b5a0"></i>E, semiciclo −</span><span><i style="background:#7d8bff"></i>campo B</span>'
+    : '<span><i style="background:#f2a01e"></i>campo E</span><span><i style="background:#7d8bff"></i>campo B (×c)</span>';
+  $("p1Title").textContent = space ? "Plano E · corte vertical" : "Plano de observación · la onda viene hacia ti";
+  $("p2Title").textContent = space ? "Plano H · corte horizontal" : "Esfera de Poincaré";
+  $("dlSine").hidden=space; $("dlSpace").hidden=!space;
+  $("noteSine").hidden=space; $("noteSpace").hidden=!space;
+  if(space){
+    setAnt(S.ant);
+    /* la antena de esta vista es vertical, así que el gesto se toma sobre el
+       eje y: un radiador lineal solo puede emitir la amplitud de un eje */
+    if(GEN.src==="manual" && S.axis==="x") setAxis("y");
+  }
+  lastTipo=""; updateFacts(); updateShareUrl(); updateChrome();
+}
+function setSrc(src){
+  GEN.src=src;
+  var man=src==="manual";
+  $("srcPreset").setAttribute("aria-pressed",String(!man));
+  $("srcManual").setAttribute("aria-pressed",String(man));
+  $("presetCtl").hidden = man;
+  $("manualCtl").hidden = !man;
+  $("pad").hidden = !man;
+  document.querySelector(".stage-wrap").classList.toggle("mode-live",man);
+
+  /* la polarización se construye a partir de la señal, salvo en manual, donde
+     las dos componentes salen directamente del gesto */
+  $("grp2").hidden = man && S.mode!=="space";
+  if(man){
+    clearRing(); racc=0; srcX=0; srcY=0; srcHold=false; padKeys={};
+    setAxis(S.axis||"x"); $("padHint").hidden=false;
+    if(!S.playing) togglePlay();
+  }
+  lastTipo=""; updateFacts(); updateShareUrl(); updateChrome();
+}
+function setWave(w){
+  GEN.wave=w;
+  Array.prototype.forEach.call(document.querySelectorAll("#waveChips button"),function(b){
+    b.setAttribute("aria-pressed",String(b.getAttribute("data-w")===w));
+  });
+  updateFacts(); updateShareUrl();
+}
+$("modePlane").addEventListener("click",function(){ setMode("plane"); });
+$("modeSpace").addEventListener("click",function(){ setMode("space"); });
+$("srcPreset").addEventListener("click",function(){ setSrc("preset"); });
+$("srcManual").addEventListener("click",function(){ setSrc("manual"); });
+Array.prototype.forEach.call(document.querySelectorAll("#waveChips button"),function(b){
+  b.addEventListener("click",function(){ setWave(b.getAttribute("data-w")); });
+});
+
+/* ===================== modo radiación 3D ===================== */
+/* Solo campo lejano de radiadores lineales con simetría de revolución
+   alrededor del eje vertical (y). E va en θ̂, B en la dirección azimutal,
+   y E × B apunta siempre hacia fuera. */
+var RMAX=3*LAM, RPAT=2.5;
+/* La escena de radiación tiene 6 u de radio. Para que la onda se vea avanzar,
+   su longitud de onda tiene que ser comparable a ese tamaño; con la portadora
+   un gesto rápido, a la velocidad de la vista plana saldrían longitudes
+   de onda de 0,3 u y el dibujo quedaría por debajo del límite de
+   Nyquist espacial, es decir, congelado. Aquí la velocidad se escala por
+   fuente. Es una escala de dibujo, como ya lo es la propia velocidad. */
+function VS(){ return GEN.src==="manual" ? V0*2.5 : V0; }
+function lamS(){ return GEN.src==="manual" ? VS()*1.2 : LAM; }
+var ANT={
+  iso:  { n:"Isotrópica (teórica)", rod:0,    f:function(){ return 1; } },
+  short:{ n:"Dipolo corto",         rod:0.3,  f:function(t){ return Math.abs(Math.sin(t)); } },
+  half: { n:"Dipolo λ/2",           rod:0.5,  f:function(t){ var s=Math.sin(t); return s<1e-9?0:Math.abs(Math.cos(Math.PI/2*Math.cos(t))/s); } },
+  full: { n:"Dipolo 1λ",            rod:1.0,  f:function(t){ var s=Math.sin(t); return s<1e-9?0:Math.abs((Math.cos(Math.PI*Math.cos(t))+1)/s); } },
+  mono: { n:"Monopolo λ/4 + plano", rod:0.5, ground:true,
+          f:function(t){ if(t>Math.PI/2) return 0; var s=Math.sin(t); return s<1e-9?0:Math.abs(Math.cos(Math.PI/2*Math.cos(t))/s); } },
+  coll: { n:"Colineal 4×λ/2",       rod:1.6,
+          f:function(t){
+            var s=Math.sin(t); if(s<1e-9) return 0;
+            var el=Math.cos(Math.PI/2*Math.cos(t))/s;
+            var psi=Math.PI*Math.cos(t), den=Math.sin(psi/2);
+            var af=Math.abs(den)<1e-9 ? 4 : Math.sin(4*psi/2)/den;
+            return Math.abs(el*af)/4;
+          } }
+};
+S.ant="half";
+S.showPat=true; S.showWav=true;
+var antNorm=1, antStats={dbi:0,hpbw:NaN};
+function antCalc(){
+  var f=ANT[S.ant].f, i, t, v, m=0, N=4000, dt=Math.PI/N, s=0, w;
+  for(i=0;i<=N;i++){ m=Math.max(m,f(i*dt)); }
+  antNorm = m>0?m:1;
+  for(i=0;i<=N;i++){ t=i*dt; v=f(t)/antNorm; w=(i===0||i===N)?1:(i%2?4:2); s+=w*v*v*Math.sin(t); }
+  s*=dt/3;
+  var D = s>1e-9 ? 2/s : 1, tmax=0, best=0;
+  for(i=0;i<=N;i++){ t=i*dt; v=f(t)/antNorm; if(v>best){ best=v; tmax=t; } }
+  var a=tmax, b=tmax, half=Math.SQRT1_2, hp=NaN;
+  while(a>0 && f(a)/antNorm>half) a-=dt;
+  while(b<Math.PI && f(b)/antNorm>half) b+=dt;
+  if(b-a < Math.PI-1e-6) hp=(b-a)*180/Math.PI;
+  antStats={ dbi:10*Math.log10(D), hpbw:hp, d:D };
+}
+function FA(t){ return ANT[S.ant].f(t)/antNorm; }
+function sph(t,ph){
+  var st=Math.sin(t), ct=Math.cos(t), cp=Math.cos(ph), sp=Math.sin(ph);
+  return { r:[st*cp, ct, st*sp], th:[ct*cp, -st, ct*sp], b:[sp, 0, -cp] };
+}
+function poly(pts,color,alpha,w,close){
+  if(pts.length<2 || alpha<=0.012) return;
+  ctx.strokeStyle=rgba(color,alpha); ctx.lineWidth=w; ctx.lineJoin="round";
+  ctx.beginPath(); ctx.moveTo(pts[0].x,pts[0].y);
+  for(var i=1;i<pts.length;i++) ctx.lineTo(pts[i].x,pts[i].y);
+  if(close) ctx.closePath();
+  ctx.stroke();
+}
+function ringPts(R,t,n){
+  var out=[], i, a, s=R*Math.sin(t), y=R*Math.cos(t);
+  n=n||44;
+  for(i=0;i<=n;i++){ a=i/n*2*Math.PI; out.push(P(s*Math.cos(a), y, s*Math.sin(a))); }
+  return out;
+}
+function meanDepth(pts){
+  var d=0,i; for(i=0;i<pts.length;i++) d+=pts[i].d; return d/pts.length;
+}
+
+/* --- corte de campo: el valor instantáneo y con signo de E sobre un plano,
+       evaluado celda a celda. Ámbar hacia un lado, azul hacia el otro. --- */
+S.sliceV=false; S.sliceH=false; S.showProbe=true; S.probe=90; S.probeNorm=true;
+var SLICE_COL=[], SLICE_N=12;
+(function(){
+  for(var i=0;i<=2*SLICE_N;i++){
+    var v=i/SLICE_N-1, a=Math.abs(v);
+    var c = v>=0 ? [242,160,30] : [51,181,160];
+    SLICE_COL[i]="rgba("+c[0]+","+c[1]+","+c[2]+","+(0.06+0.74*a).toFixed(3)+")";
+  }
+})();
+function drawSlice(plane){
+  var NR=40, NA=72, r0=0.5, dr=(RMAX-r0)/NR, nodes=new Array((NA+1)*(NR+1));
+  var i, j, r, a, ca, sa;
+  for(j=0;j<=NA;j++){
+    a=j/NA*2*Math.PI; ca=Math.cos(a); sa=Math.sin(a);
+    for(i=0;i<=NR;i++){
+      r=r0+i*dr;
+      nodes[j*(NR+1)+i] = plane==="v" ? P(r*sa, r*ca, 0) : P(r*ca, 0, r*sa);
+    }
+  }
+  for(j=0;j<NA;j++){
+    var am=(j+0.5)/NA*2*Math.PI;
+    var th = plane==="v" ? (am<=Math.PI ? am : 2*Math.PI-am) : Math.PI/2;
+    var Fv=FA(th);
+    if(Fv<0.005) continue;
+    for(i=0;i<NR;i++){
+      var rm=r0+(i+0.5)*dr;
+      var val=Fv*scalarAt(S.t-rm/VS())*(0.85/rm);
+      var lvl=Math.round(clamp(val,-1,1)*SLICE_N)+SLICE_N;
+      if(lvl===SLICE_N) continue;
+      var n0=nodes[j*(NR+1)+i], n1=nodes[j*(NR+1)+i+1],
+          n2=nodes[(j+1)*(NR+1)+i+1], n3=nodes[(j+1)*(NR+1)+i];
+      ctx.fillStyle=SLICE_COL[lvl];
+      ctx.beginPath();
+      ctx.moveTo(n0.x,n0.y); ctx.lineTo(n1.x,n1.y); ctx.lineTo(n2.x,n2.y); ctx.lineTo(n3.x,n3.y);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+  /* la zona interior no es campo lejano: se deja fuera y se dice */
+  var prev=null, p;
+  for(i=0;i<=40;i++){
+    a=i/40*2*Math.PI;
+    p = plane==="v" ? P(r0*Math.sin(a), r0*Math.cos(a), 0) : P(r0*Math.cos(a), 0, r0*Math.sin(a));
+    if(prev) seg(prev,p,"#8a9cb4",0.3,1);
+    prev=p;
+  }
+}
+
+/* --- sonda: UNA dirección concreta, con los vectores E y B tal y como son --- */
+function drawProbe(){
+  var t=rad(S.probe), d=sph(t,0), F0=FA(t), i, s, amp, base, pe, pb;
+  var end=P(RMAX*d.r[0],RMAX*d.r[1],RMAX*d.r[2]);
+  poly([P(0,0,0),end],"#b9cbe4",0.55,1.3);
+  label("dirección de sonda · θ = "+Math.round(S.probe)+"°",
+        {x:end.x, y:end.y-14}, "#b9cbe4", 0.9, 12);
+  if(F0<0.02){
+    label("no hay radiación en esta dirección", {x:end.x, y:end.y+4}, "#8a9cb4", 0.85, 11.5);
+    return;
+  }
+  var eP=[], bP=[];
+  for(i=0;i<=80;i++){
+    s=0.8+(RMAX-0.8)*i/80;
+    amp=0.44*F0*(S.probeNorm?1:1.2/s)*scalarAt(S.t-s/VS());
+    eP.push(P(s*d.r[0]+amp*d.th[0], s*d.r[1]+amp*d.th[1], s*d.r[2]+amp*d.th[2]));
+    bP.push(P(s*d.r[0]+amp*d.b[0],  s*d.r[1]+amp*d.b[1],  s*d.r[2]+amp*d.b[2]));
+  }
+  if(S.showB) poly(bP,CB,0.6,1.5);
+  if(S.showE) poly(eP,CE,0.65,1.6);
+  for(i=0;i<11;i++){
+    s=0.95+i*(RMAX-1.1)/10;
+    amp=0.44*F0*(S.probeNorm?1:1.2/s)*scalarAt(S.t-s/VS());
+    base=P(s*d.r[0],s*d.r[1],s*d.r[2]);
+    if(S.showB){
+      pb=P(s*d.r[0]+amp*d.b[0], s*d.r[1]+amp*d.b[1], s*d.r[2]+amp*d.b[2]);
+      arrow(base,pb,CB,0.95*alphaOf(base.d),2.2);
+    }
+    if(S.showE){
+      pe=P(s*d.r[0]+amp*d.th[0], s*d.r[1]+amp*d.th[1], s*d.r[2]+amp*d.th[2]);
+      arrow(base,pe,CE,1*alphaOf(base.d),2.5);
+      if(i===2) label("E",{x:pe.x+12,y:pe.y-10},CE,0.95,13.5);
+    }
+    if(S.showB && i===2){
+      pb=P(s*d.r[0]+amp*d.b[0], s*d.r[1]+amp*d.b[1], s*d.r[2]+amp*d.b[2]);
+      label("B",{x:pb.x+12,y:pb.y-10},CB,0.95,13.5);
+    }
+  }
+}
+
+function renderSpace(){
+  fitFocal();
+  var g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,"#0f1116"); g.addColorStop(1,"#141824");
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  var rg=ctx.createRadialGradient(W/2,H/2,10,W/2,H/2,Math.max(W,H)*0.6);
+  rg.addColorStop(0,"rgba(122,136,168,.13)"); rg.addColorStop(1,"rgba(0,0,0,0)");
+  ctx.fillStyle=rg; ctx.fillRect(0,0,W,H);
+
+  var A=ANT[S.ant], i, j, t, pts;
+
+  /* plano de masa */
+  if(A.ground){
+    for(i=1;i<=6;i++) poly(ringPts(i*RMAX/6, Math.PI/2), "#5a7794", 0.22, 1, true);
+    for(i=0;i<12;i++){
+      var an=i/12*2*Math.PI;
+      poly([P(0,0,0), P(RMAX*Math.cos(an),0,RMAX*Math.sin(an))], "#5a7794", 0.14, 1);
+    }
+    label("plano de masa", P(0,-0.35,RMAX*0.72), "#7f93ad", 0.8, 11.5);
+  }
+
+  /* corte del campo: el valor real y con signo de E sobre un plano */
+  if(S.sliceV) drawSlice("v");
+  if(S.sliceH) drawSlice("h");
+
+  /* campo completo en 3D: capas esféricas concéntricas, cada una con el signo
+     y la amplitud que le tocan. Como el campo solo depende de r y de θ, esto es
+     el campo entero, no una muestra de él. */
+  if(S.showWav){
+    var step=clamp(lamS()/12,0.11,0.3), base=0.55+((S.t*VS())%step+step)%step, R, val, amp, col;
+    for(R=base; R<=RMAX; R+=step){
+      val=scalarAt(S.t-R/VS());
+      if(Math.abs(val)<0.022) continue;
+      col = val>=0 ? CE : CNEG;
+      var fall=clamp(1.05/R,0.12,1);
+      for(j=1;j<=13;j++){
+        t=j/14*Math.PI;
+        amp=FA(t);
+        if(amp<0.02) continue;
+        pts=ringPts(R,t,40);
+        poly(pts, col, clamp(0.72*Math.abs(val)*amp*fall,0,0.62)*alphaOf(meanDepth(pts)), 1.3, true);
+      }
+    }
+  }
+
+  /* superficie del patrón de radiación */
+  if(S.showPat){
+    for(i=0;i<12;i++){
+      var ph=i/12*2*Math.PI; pts=[];
+      for(j=0;j<=72;j++){
+        t=j/72*Math.PI;
+        var rr=RPAT*FA(t), d=sph(t,ph).r;
+        pts.push(P(rr*d[0], rr*d[1], rr*d[2]));
+      }
+      poly(pts, CPAT, 0.4*alphaOf(meanDepth(pts)), 1.2);
+    }
+    for(j=1;j<12;j++){
+      t=j/12*Math.PI;
+      if(FA(t)<0.02) continue;
+      pts=ringPts(RPAT*FA(t), t, 40);
+      poly(pts, CPAT, 0.28*alphaOf(meanDepth(pts)), 1.1, true);
+    }
+    label("patrón de radiación", P(0, -RPAT*1.12, 0), CPAT, 0.8, 11.5);
+  }
+
+  /* sonda: una sola dirección, con sus vectores reales */
+  if(S.showProbe) drawProbe();
+
+  /* la antena */
+  if(A.rod>0){
+    var y0 = A.ground ? 0 : -A.rod, y1 = A.ground ? A.rod : A.rod;
+    poly([P(0,y0,0),P(0,y1,0)], "#e8f0ff", 0.95, 4.5);
+    poly([P(0,y0,0),P(0,y1,0)], "#0f1116", 0.5, 1.4);
+  } else {
+    var o=P(0,0,0);
+    ctx.fillStyle=rgba("#e8f0ff",0.9); ctx.beginPath(); ctx.arc(o.x,o.y,4,0,2*Math.PI); ctx.fill();
+  }
+
+  /* el nulo del eje, cuando lo hay */
+  if(FA(0.02)<0.02){
+    ctx.setLineDash([4,5]);
+    poly([P(0,-RMAX*0.85,0),P(0,RMAX*0.85,0)], "#8a9cb4", 0.35, 1);
+    ctx.setLineDash([]);
+    label("nulo", P(0,RMAX*0.9,0), "#8a9cb4", 0.7, 11.5);
+  }
+  if(!S.showPat && !S.showWav && !S.showProbe && !S.sliceV && !S.sliceH){
+    label("Activa alguna capa en el panel de la derecha",{x:W/2,y:H*0.5},"#9db2cd",0.9,14);
+  } else if(GEN.src==="manual" && !everDrawn){
+    label("Arrastra dentro del generador para radiar tu señal",{x:W/2,y:H*0.13},"#9db2cd",0.9,14);
+  }
+}
+
+/* cortes polares del patrón */
+function drawEplane(){
+  var w=380, c=w/2, R=w*0.36, i, a, t, v, x, y;
+  mctx.clearRect(0,0,w,w);
+  mctx.fillStyle="#0f1116"; mctx.fillRect(0,0,w,w);
+  mctx.strokeStyle="rgba(125,155,190,.2)"; mctx.lineWidth=1;
+  for(i=1;i<=3;i++){ mctx.beginPath(); mctx.arc(c,c,R*i/3,0,2*Math.PI); mctx.stroke(); }
+  mctx.beginPath(); mctx.moveTo(c-R*1.1,c); mctx.lineTo(c+R*1.1,c);
+  mctx.moveTo(c,c-R*1.1); mctx.lineTo(c,c+R*1.1); mctx.stroke();
+  mctx.strokeStyle="rgba(147,167,192,.95)"; mctx.lineWidth=2.2; mctx.beginPath();
+  for(i=0;i<=240;i++){
+    a=i/240*2*Math.PI;
+    t = a<=Math.PI ? a : 2*Math.PI-a;
+    v=FA(t)*R;
+    x=c+v*Math.sin(a)*(a<=Math.PI?1:-1); y=c-v*Math.cos(a);
+    i?mctx.lineTo(x,y):mctx.moveTo(x,y);
+  }
+  mctx.closePath(); mctx.stroke();
+  mctx.fillStyle="rgba(232,240,255,.85)"; mctx.fillRect(c-2,c-R*0.16,4,R*0.32);
+  mctx.font='500 13px "Archivo",system-ui,sans-serif';
+  mctx.fillStyle="rgba(150,175,205,.8)"; mctx.textAlign="center"; mctx.textBaseline="middle";
+  mctx.fillText("eje", c, c-R*1.16); mctx.fillText("horizonte", c+R*0.72, c+R*1.1);
+}
+function drawHplane(){
+  var w=380, c=w/2, R=w*0.36, i, v=FA(Math.PI/2);
+  pctx.clearRect(0,0,w,w);
+  pctx.fillStyle="#0f1116"; pctx.fillRect(0,0,w,w);
+  pctx.strokeStyle="rgba(125,155,190,.2)"; pctx.lineWidth=1;
+  for(i=1;i<=3;i++){ pctx.beginPath(); pctx.arc(c,c,R*i/3,0,2*Math.PI); pctx.stroke(); }
+  pctx.beginPath(); pctx.moveTo(c-R*1.1,c); pctx.lineTo(c+R*1.1,c);
+  pctx.moveTo(c,c-R*1.1); pctx.lineTo(c,c+R*1.1); pctx.stroke();
+  pctx.strokeStyle="rgba(147,167,192,.95)"; pctx.lineWidth=2.2;
+  pctx.beginPath(); pctx.arc(c,c,Math.max(2,v*R),0,2*Math.PI); pctx.stroke();
+  pctx.fillStyle="rgba(232,240,255,.9)"; pctx.beginPath(); pctx.arc(c,c,4,0,2*Math.PI); pctx.fill();
+  pctx.font='500 12.5px "Archivo",system-ui,sans-serif';
+  pctx.fillStyle="rgba(150,175,205,.8)"; pctx.textAlign="center"; pctx.textBaseline="middle";
+  pctx.fillText(v>0.02?"mismo nivel en todo el azimut":"sin radiación en el horizonte", c, c+R*1.22);
+}
+function updateSpaceFacts(){
+  var A=ANT[S.ant];
+  $("sAnt").textContent=A.n;
+  $("sDir").textContent=antStats.d.toFixed(2)+" · "+antStats.dbi.toFixed(2)+" dBi";
+  $("sHp").textContent=isFinite(antStats.hpbw)?antStats.hpbw.toFixed(0)+"°":"—";
+  $("sAz").textContent=FA(Math.PI/2)>0.02?"omnidireccional":"—";
+  $("sPol").textContent=S.ant==="iso"?"no definida":"lineal, en el plano del eje";
+  var fv=FA(rad(S.probe));
+  $("sLvl").textContent = fv<0.003 ? "nulo" : (20*Math.log10(fv)).toFixed(1)+" dB del máximo";
+}
+function setAnt(a){
+  S.ant=a; antCalc();
+  Array.prototype.forEach.call(document.querySelectorAll("#antChips button"),function(b){
+    b.setAttribute("aria-pressed",String(b.getAttribute("data-a")===a));
+  });
+  updateSpaceFacts(); updateShareUrl(); updateChrome();
+}
+Array.prototype.forEach.call(document.querySelectorAll("#antChips button"),function(b){
+  b.addEventListener("click",function(){ setAnt(b.getAttribute("data-a")); });
+});
+bindToggle("tPat","showPat"); bindToggle("tWav","showWav");
+bindToggle("tSV","sliceV"); bindToggle("tSH","sliceH"); bindToggle("tPr","showProbe");
+bindToggle("tNorm","probeNorm");
+$("pr").addEventListener("input",function(){
+  S.probe=parseFloat(this.value); $("vpr").textContent=Math.round(S.probe)+"°"; updateSpaceFacts();
+});
+$("tE2").addEventListener("change",function(){ S.showE=this.checked; $("tE").checked=this.checked; });
+$("tB2").addEventListener("change",function(){ S.showB=this.checked; $("tB").checked=this.checked; });
+
+/* ===================== créditos ===================== */
+var credEl=$("credits"), backEl=$("backdrop"), credOpener=null;
+function openCredits(btn){
+  credOpener=btn||null;
+  credEl.classList.add("on"); backEl.classList.add("on");
+  $("credClose").focus();
+}
+function closeCredits(){
+  credEl.classList.remove("on"); backEl.classList.remove("on");
+  if(credOpener) credOpener.focus();
+}
+$("credLink").addEventListener("click",function(){ openCredits(this); });
+$("credClose").addEventListener("click",closeCredits);
+backEl.addEventListener("click",closeCredits);
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape" && credEl.classList.contains("on")) closeCredits();
+});
+
+/* ===================== tema ===================== */
+var saved=store("pol-theme");
+if(saved) document.documentElement.setAttribute("data-theme",saved);
+$("themeBtn").addEventListener("click",function(){
+  var cur=document.documentElement.getAttribute("data-theme");
+  var dark = cur ? cur==="dark" : (window.matchMedia("(prefers-color-scheme: dark)").matches);
+  var next = dark?"light":"dark";
+  document.documentElement.setAttribute("data-theme",next);
+  store("pol-theme",next);
+});
+
+/* ===================== compartir ===================== */
+var sharePop=$("sharePop"), shareBtn=$("shareBtn");
+shareBtn.addEventListener("click",function(e){
+  e.stopPropagation();
+  var on=sharePop.classList.toggle("on");
+  shareBtn.setAttribute("aria-expanded",String(on));
+  if(on){ updateShareUrl(); $("shareUrl").select(); }
+});
+document.addEventListener("click",function(e){
+  if(sharePop.classList.contains("on") && !sharePop.contains(e.target)){
+    sharePop.classList.remove("on"); shareBtn.setAttribute("aria-expanded","false");
+  }
+});
+$("copyBtn").addEventListener("click",function(){
+  var input=$("shareUrl");
+  input.select(); input.setSelectionRange(0,99999);
+  function fallback(){
+    var ok=false; try{ ok=document.execCommand("copy"); }catch(e){}
+    toast(ok?"Enlace copiado":"Selecciona el texto y cópialo con Ctrl+C");
+  }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(input.value).then(function(){ toast("Enlace copiado"); },fallback);
+  } else fallback();
+});
+
+/* ===================== exportar imagen ===================== */
+var downloads=null;
+if(window.claude && typeof window.claude.use==="function"){
+  window.claude.use("downloads").then(function(d){
+    downloads=d; if(d) $("pngBtn").hidden=false;
+  }).catch(function(){});
+}
+$("pngBtn").addEventListener("click",function(){
+  if(!downloads) return;
+  var pad=Math.round(16*DPR), footer=Math.round(74*DPR), miniSize=Math.round(150*DPR);
+  var out=document.createElement("canvas");
+  out.width=cv.width; out.height=cv.height+footer;
+  var o=out.getContext("2d");
+  o.fillStyle="#0f1116"; o.fillRect(0,0,out.width,out.height);
+  o.drawImage(cv,0,0);
+  o.drawImage(mini, out.width-miniSize-pad, cv.height-miniSize-pad, miniSize, miniSize);
+  var r=describe();
+  o.fillStyle="#dfeaff"; o.font="600 "+Math.round(17*DPR)+'px "Archivo",system-ui,sans-serif';
+  o.textBaseline="top"; o.textAlign="left";
+  o.fillText("Polarización "+r.tipo.toLowerCase()+(r.sent!=="—"?" "+r.sent.replace(" (IEEE)",""):""), pad, cv.height+Math.round(14*DPR));
+  o.fillStyle="#93a7c4"; o.font="400 "+Math.round(13*DPR)+'px "Chivo Mono",monospace';
+  var foot = GEN.src!=="preset"
+    ? "generador manual   s1="+r.st.s1.toFixed(2)+"  s2="+r.st.s2.toFixed(2)+"  s3="+r.st.s3.toFixed(2)
+    : "Ax="+S.Ax.toFixed(2)+"   Ay="+S.Ay.toFixed(2)+"   δ="+(S.delta>0?"+":"")+Math.round(S.delta)+"°   ψ="+r.psi+"   AR="+r.ar;
+  o.fillText(foot, pad, cv.height+Math.round(40*DPR));
+  out.toBlob(function(blob){
+    if(!blob){ toast("No se pudo generar la imagen"); return; }
+    downloads.save({ filename:"polarizacion-"+r.tipo.toLowerCase()+".png", data:blob })
+      .then(function(){ toast("Imagen guardada"); })
+      .catch(function(err){
+        var c=err&&err.code;
+        if(c==="declined") toast("Descarga cancelada");
+        else if(c==="rate_limited") toast("Espera un momento e inténtalo otra vez");
+        else toast("La descarga no está disponible aquí");
+      });
+  },"image/png");
+});
+
+/* ===================== recorrido guiado ===================== */
+var TOUR=[
+  { t:"Una onda, dos campos",
+    x:"El campo eléctrico (ámbar) y el magnético (violeta) son perpendiculares entre sí y al sentido de avance. Oscilan en fase: donde uno es máximo, el otro también. Gira la escena arrastrando con el ratón.",
+    p:[1,0,0], v:"iso", m:"plane", src:"preset", wave:"sine", set:{showE:true,showB:true,showVec:true,showPlane:true,showComp:false} },
+  { t:"Polarización lineal",
+    x:"Con las dos componentes en fase, la punta de E va y viene sobre una recta inclinada. Aquí valen lo mismo, así que la recta está a 45°.",
+    p:[0.78,0.78,0], v:"front", m:"plane", src:"preset", wave:"sine", set:{showB:false,showComp:true} },
+  { t:"Las componentes que la forman",
+    x:"Las curvas tenues son las proyecciones sobre los planos x–z e y–z. La onda real es en todo momento la suma de esas dos, como un paralelogramo.",
+    p:[0.78,0.78,0], v:"iso", m:"plane", src:"preset", wave:"sine", set:{showB:false,showComp:true} },
+  { t:"Retrasa una componente 90°",
+    x:"Si una componente se retrasa un cuarto de periodo respecto a la otra y ambas tienen la misma amplitud, la punta de E describe una circunferencia. Es la polarización circular.",
+    p:[0.82,0.82,90], v:"front", m:"plane", src:"preset", wave:"sine", set:{showB:false,showComp:false} },
+  { t:"El giro en el espacio y en el tiempo",
+    x:"En 3D la curva es una hélice. Ojo al detalle: esta onda es dextrógira en el tiempo, pero su hélice en el espacio es levógira. Son dos cosas distintas que se confunden a menudo.",
+    p:[0.82,0.82,90], v:"iso", m:"plane", src:"preset", wave:"sine", set:{showB:true,showComp:false} },
+  { t:"No tiene por qué ser una sinusoide",
+    x:"El desfase es en realidad un retardo temporal, así que la polarización se generaliza a cualquier forma de onda. Con una triangular la punta de E ya no recorre una elipse, sino la curva de Lissajous correspondiente. En el vacío no hay dispersión y la forma viaja intacta.",
+    p:[0.82,0.82,90], v:"iso", m:"plane", src:"preset", wave:"tri", set:{showB:true,showPlane:true} },
+  { t:"Un pulso aislado",
+    x:"El monociclo es lo que emite de verdad una antena de impulsos: bipolar y sin componente continua, porque un campo constante no se radia. Míralo salir y viajar.",
+    p:[1,0,0], v:"iso", m:"plane", src:"preset", wave:"pulse", set:{showB:true,showComp:false} },
+  { t:"Genérala tú",
+    x:"El generador pasa a modo manual y aparece un cuadro sobre la escena. Está sujeto al eje x, como un dipolo real: solo puedes variar la amplitud. Abajo, en el panel, ves la señal escalar que estás transmitiendo.",
+    p:[1,0.6,90], v:"iso", m:"plane", src:"manual", set:{showB:true,showComp:false,showPlane:true} },
+  { t:"Y así sale al espacio",
+    x:"Hasta aquí todo era un único rayo. Las capas esféricas son el campo completo: cada color es medio ciclo de E. Los frentes se expanden enteros mientras el patrón solo decide cuánta amplitud va a cada lado. Fíjate en el nulo sobre el eje del dipolo.",
+    p:[1,0,0], v:"iso", m:"space", src:"preset", wave:"sine", set:{showE:true,showB:true} }
+];
+var tourIdx=-1, tourEl=$("tour");
+function tourApply(i){
+  var s=TOUR[i], k, want=s.m||"plane";
+  tourIdx=i;
+  if(s.src && GEN.src!==s.src) setSrc(s.src);
+  if(s.wave && GEN.wave!==s.wave) setWave(s.wave);
+  if(S.mode!==want) setMode(want);
+  $("tourStep").textContent="Paso "+(i+1)+" de "+TOUR.length;
+  $("tourTitle").textContent=s.t;
+  $("tourText").textContent=s.x;
+  var dots="", j;
+  for(j=0;j<TOUR.length;j++) dots+='<i class="'+(j===i?"on":"")+'"></i>';
+  $("tourDots").innerHTML=dots;
+  $("tourPrev").disabled = i===0;
+  $("tourNext").textContent = i===TOUR.length-1 ? "Terminar" : "Siguiente";
+  for(k in s.set){ if(Object.prototype.hasOwnProperty.call(s.set,k)){
+    S[k]=s.set[k];
+    var box={showE:"tE",showB:"tB",showVec:"tV",showPlane:"tP",showGrid:"tG",showComp:"tC"}[k];
+    if(box) $(box).checked=s.set[k];
+  }}
+  setParams(s.p[0],s.p[1],s.p[2],true);
+  goView(s.v);
+  clearPreset();
+  if(!S.playing && !reduced) { S.playing=true; syncPlay(); }
+}
+function tourStart(){ tourEl.classList.add("on"); tourApply(0); }
+function tourEnd(){ tourEl.classList.remove("on"); tourIdx=-1; }
+$("tourBtn").addEventListener("click",function(){ tourIdx<0?tourStart():tourEnd(); });
+$("tourNext").addEventListener("click",function(){ tourIdx>=TOUR.length-1?tourEnd():tourApply(tourIdx+1); });
+$("tourPrev").addEventListener("click",function(){ if(tourIdx>0) tourApply(tourIdx-1); });
+$("tourExit").addEventListener("click",tourEnd);
+document.addEventListener("keydown",function(e){
+  if(tourIdx<0) return;
+  if(e.key==="Escape") tourEnd();
+});
+
+
+/* ===================== arquitectura de la interfaz ===================== */
+var chromeTimer=null;
+function updateChromeSoon(){ clearTimeout(chromeTimer); chromeTimer=setTimeout(updateChrome,90); }
+/* grupos plegables: el resumen del encabezado dice qué hay dentro sin abrirlo */
+Array.prototype.forEach.call(document.querySelectorAll(".grouphead"),function(h){
+  h.addEventListener("click",function(){
+    var open=h.getAttribute("aria-expanded")==="true";
+    h.setAttribute("aria-expanded",String(!open));
+  });
+});
+function setGroup(id,open){ var h=$(id); if(h) h.setAttribute("aria-expanded",String(open)); }
+/* los pasos se renumeran según cuáles apliquen, para que no queden huecos */
+function renumber(){
+  var n=0;
+  ["grp1","grp2","grp3"].forEach(function(id){
+    var sec=$(id); if(!sec || sec.hidden) return;
+    n++;
+    var num=sec.querySelector ? sec.querySelector(".num") : null;
+    if(num) num.textContent=String(n);
+  });
+}
+
+var WAVE_N={sine:"Sinusoidal",tri:"Triangular",sq:"Cuadrada",saw:"Diente de sierra",sinc:"Sinc",pulse:"Monociclo"};
+function layerCount(){
+  var n=0;
+  if(S.mode==="space"){
+    if(S.showWav) n++; if(S.showPat) n++; if(S.showProbe) n++;
+    if(S.sliceV) n++; if(S.sliceH) n++;
+  } else {
+    if(S.showE) n++; if(S.showB) n++; if(S.showVec) n++;
+    if(S.showPlane) n++; if(S.showGrid) n++; if(S.showComp) n++;
+  }
+  return n;
+}
+function updateChrome(){
+  var space=S.mode==="space", r=describe(), st=stokes();
+  $("sum1").textContent = GEN.src==="manual" ? "Gesto manual" : WAVE_N[GEN.wave];
+  $("t2").textContent = space ? "Antena" : "Polarización";
+  $("why2").textContent = space
+    ? "Qué radiador emite. Su geometría decide hacia dónde va la potencia y en qué dirección queda el campo; el mensaje no interviene."
+    : "Cómo se reparte el campo entre los dos ejes transversales. El desfase δ es un retardo de la componente y, y eso es lo único que decide la figura que dibuja la punta de E.";
+  $("sum2").textContent = space ? ANT[S.ant].n : (r.sent!=="—" ? r.tipo+" "+r.sent.replace(" (IEEE)","") : r.tipo);
+  $("sum3").textContent = layerCount()+(layerCount()===1?" capa activa":" capas activas");
+
+  var sentM = r.sent==="—" ? "" : (r.st.s3>0 ? "dextrógiro" : "levógiro");
+  var sentF = r.sent==="—" ? "" : (r.st.s3>0 ? "dextrógira" : "levógira");
+  if(space){
+    var A=ANT[S.ant], gan=antStats.dbi.toFixed(1).replace(".",",");
+    var expl={
+      iso:"Reparte la potencia por igual en todas las direcciones. No existe ninguna antena así: está aquí solo como referencia, porque es contra ella contra la que se miden los dBi de todas las demás.",
+      short:"Reparte la potencia en forma de rosquilla: lo máximo hacia todo el horizonte y nada en la dirección de su propio eje. Contra lo que sugiere la intuición, una antena no radia hacia donde apunta.",
+      half:"Reparte la potencia en forma de rosquilla: lo máximo hacia todo el horizonte y nada en la dirección de su propio eje. Es el radiador de referencia con el que se compara casi todo.",
+      full:"Al alargar la antena la rosquilla se estrecha: concentra más hacia el horizonte y deja fuera las direcciones altas.",
+      mono:"El plano de masa hace de espejo: refleja hacia arriba lo que iría hacia abajo, así que radia media rosquilla con el doble de intensidad. Por eso un monopolo gana 3 dB sobre el dipolo del que sale.",
+      coll:"Cuatro elementos en fila aplastan la rosquilla contra el horizonte: más alcance en llano a cambio de un haz vertical mucho más estrecho, y aparecen lóbulos laterales."
+    }[S.ant];
+    $("vKicker").textContent="Lo que hace esta antena";
+    $("vTitle").textContent=A.n+" · "+gan+" dBi";
+    $("vText").textContent=expl+" El color de las capas son los dos semiciclos del campo eléctrico, y se apagan donde la antena no radia.";
+    $("p1Cap").textContent="Corte vertical, con la antena de pie en el centro. La forma de ocho es la firma del dipolo: dos lóbulos y un cero arriba y abajo.";
+    $("p2Cap").textContent="Corte horizontal, lo que mediría alguien dando una vuelta alrededor. Que salga un círculo es justo lo que significa «omnidireccional».";
+  } else {
+    /* El estado se clasifica igual venga de una fórmula o de un gesto, pero con
+       el gesto es una estimación sobre los últimos segundos, así que el texto
+       lo dice en lugar de afirmarlo como si fuera exacto. */
+    var manual = GEN.src==="manual";
+    var clave = r.tipo.replace("Casi ","").toLowerCase();
+    var aprox = manual ? "aproximadamente " : "";
+    var t, cap;
+    if(clave==="sin señal" || clave==="sin campo"){
+      t = manual ? "Todavía no hay señal" : "Sin campo";
+      cap = manual
+        ? "Arrastra dentro del cuadro que hay sobre la escena: lo que dibujes sale emitido desde el origen y viaja por el eje z."
+        : "Las dos amplitudes están a cero. Sube alguna en el paso de polarización y la onda aparecerá.";
+    } else if(clave==="lineal"){
+      t="Polarización lineal";
+      cap="Las dos componentes suben y bajan a la vez, así que la punta del campo eléctrico va y viene "+aprox+"sobre una recta"+(manual?"":", a "+r.psi+" de la horizontal")+". Es lo que emite cualquier antena de un solo elemento, como el dipolo de una radio.";
+    } else if(clave==="circular"){
+      t="Polarización circular "+sentF;
+      cap="Las dos componentes valen "+(manual?"casi ":"")+"lo mismo y van desfasadas un cuarto de ciclo: cuando una pasa por su máximo, la otra vale cero. La punta del campo describe "+aprox+"una circunferencia, girando en sentido "+sentM+". Es la que usan el GPS y los enlaces con satélite, porque funciona sin importar cómo esté orientado el receptor.";
+    } else {
+      t="Polarización elíptica "+sentF;
+      cap="La punta del campo eléctrico recorre "+aprox+"una elipse"+(manual?"":" cuyo eje mayor está a "+r.psi+" de la horizontal")+", girando en sentido "+sentM+". Este es en realidad el caso general: la recta y la circunferencia solo son sus dos extremos.";
+    }
+    if(!manual && !(GEN.src==="preset" && GEN.wave==="sine") && clave!=="sin campo"){
+      cap += " Con esta forma de onda la figura ya no es una elipse exacta, sino la curva de Lissajous que le corresponde.";
+    }
+    if(manual && clave!=="sin señal"){
+      cap += " Es una lectura estimada sobre los últimos segundos de tu gesto, no un valor exacto: la polarización no es una foto de un instante, es un patrón sostenido en el tiempo.";
+    }
+    $("vKicker").textContent=(manual?"Tu gesto":"Una onda "+WAVE_N[GEN.wave].toLowerCase())+" avanzando en +z";
+    $("vTitle").textContent=t;
+    $("vText").textContent=cap;
+    $("p1Cap").textContent="Lo que verías si la onda viniera directamente hacia ti: el campo eléctrico en ámbar, el magnético en violeta, siempre perpendiculares.";
+    $("p2Cap").textContent="Un mapa donde cada punto es un estado de polarización distinto. El ecuador son los lineales y los polos los circulares.";
+  }
+  renumber();
+}
+
+/* la guía, como panel */
+var guideEl=$("guide");
+function openGuide(btn){ credOpener=btn||null; guideEl.classList.add("on"); backEl.classList.add("on"); $("guideClose").focus(); }
+function closeGuide(){ guideEl.classList.remove("on"); backEl.classList.remove("on"); if(credOpener) credOpener.focus(); }
+$("guideLink").addEventListener("click",function(){ openGuide(this); });
+$("guideClose").addEventListener("click",closeGuide);
+backEl.addEventListener("click",closeGuide);
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape" && guideEl.classList.contains("on")) closeGuide();
+});
+
+
+/* ===================== bucle ===================== */
+var last=0, hidden=false, lastChromeT=0;
+document.addEventListener("visibilitychange",function(){ hidden=document.hidden; last=0; });
+function frame(ts){
+  requestAnimationFrame(frame);
+  if(hidden || !visible) { last=0; return; }
+  var dt = last ? Math.min(0.05,(ts-last)/1000) : 0; last=ts;
+  if(S.playing) S.t += dt*S.speed;
+  if(GEN.src==="manual"){
+    if(S.playing) advanceGen(dt*S.speed);
+    updateFacts();
+    drawPad();
+  }
+  /* el veredicto se recalcula cuatro veces por segundo: así refleja cualquier
+     cambio de estado sin depender de que cada control se acuerde de avisar */
+  if(ts-lastChromeT>250){ lastChromeT=ts; updateChrome(); }
+  drawSignal();
+
+  if(camAnim){
+    camAnim.k=Math.min(1,camAnim.k+dt*2.4);
+    var e=1-Math.pow(1-camAnim.k,3);
+    S.yaw=camAnim.y0+(camAnim.y1-camAnim.y0)*e;
+    S.pitch=camAnim.p0+(camAnim.p1-camAnim.p0)*e;
+    if(camAnim.z1!==undefined) S.zoom=camAnim.z0+(camAnim.z1-camAnim.z0)*e;
+    if(camAnim.k>=1) camAnim=null;
+  }
+  if(paramAnim){
+    paramAnim.k=Math.min(1,paramAnim.k+dt*2.2);
+    var f=1-Math.pow(1-paramAnim.k,3);
+    S.Ax=paramAnim.a0+(paramAnim.a1-paramAnim.a0)*f;
+    S.Ay=paramAnim.b0+(paramAnim.b1-paramAnim.b0)*f;
+    S.delta=paramAnim.d0+(paramAnim.d1-paramAnim.d0)*f;
+    setSliderUI(); updateFacts();
+    if(paramAnim.k>=1){ paramAnim=null; }
+  }
+  render(); drawMini(); drawPoincare();
+}
+
+/* ===================== arranque ===================== */
+readHash();
+resize(); setSliderUI(); syncPlay();
+setWave(GEN.wave); setSrc(GEN.src); setMode(S.mode); updateChrome();
+if(reduced){ $("nudge").textContent="Arrastra para girar · la animación está pausada"; }
+requestAnimationFrame(frame);
+
+})();
+</script>
+</body>
+</html>
