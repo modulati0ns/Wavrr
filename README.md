@@ -4,7 +4,6 @@ Herramienta interactiva en 3D para enseñar propagación, polarización y radiac
 de antenas. Una sola página, sin dependencias ni compilación: se abre haciendo
 doble clic en `index.html`.
 
-![sin capturas en el repositorio — abre index.html](#)
 
 ## Qué hace
 
