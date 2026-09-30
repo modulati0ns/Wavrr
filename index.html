@@ -419,6 +419,12 @@
   .vk{ margin:0 0 7px; font-size:10px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
   .verdict h2{ margin:0; font-size:clamp(21px,2.6vw,28px); font-weight:700; letter-spacing:-.025em; color:var(--accent); }
   .vtext{ margin:10px 0 0; font-size:15px; max-width:66ch; line-height:1.6; }
+  .harm{ margin:14px 0 0; display:flex; flex-wrap:wrap; gap:7px; }
+  .harm span{
+    font:500 11.5px/1 "Chivo Mono",monospace; color:var(--muted);
+    background:var(--panel); box-shadow:var(--in-s); border-radius:8px; padding:8px 11px;
+  }
+  .harm span b{ color:var(--accent); font-weight:600; }
   .scopes{ display:grid; grid-template-columns:1fr 1fr; gap:22px; margin-top:22px; }
   @media (max-width:640px){ .scopes{ grid-template-columns:1fr; } }
   .scopes figure{ margin:0; }
@@ -556,6 +562,7 @@
         <p class="vk" id="vKicker">Polarización</p>
         <h2 id="vTitle">—</h2>
         <p class="vtext" id="vText">—</p>
+        <p class="harm" id="vHarm" hidden></p>
 
         <div class="scopes">
           <figure>
@@ -578,6 +585,7 @@
             <dt>Sentido de giro</dt><dd id="rSent">—</dd>
             <dt>Inclinación ψ</dt><dd id="rPsi">—</dd>
             <dt>Relación axial</dt><dd id="rAR">—</dd>
+            <dt>Grado de polarización</dt><dd id="rDop">—</dd>
             <dt>Stokes s₁ s₂ s₃</dt><dd id="rStokes">—</dd>
             <dt>Desfase δ</dt><dd id="rDelta">—</dd>
           </dl>
@@ -744,7 +752,8 @@
         <div class="toggles">
           <label><input type="checkbox" id="tE2" checked> Campo E</label>
           <label><input type="checkbox" id="tB2" checked> Campo B</label>
-          <label><input type="checkbox" id="tNorm" checked> Compensar 1/r</label>
+          <label><input type="checkbox" id="tNorm"> Compensar 1/r</label>
+          <label><input type="checkbox" id="tDb" checked> Cortes en dB</label>
         </div>
         <p class="liveNote" style="margin-top:8px">La compensación es solo una ayuda visual: mantiene el tamaño de los vectores a lo largo del rayo. La caída real 1/r sigue viéndose en las capas y en los cortes.</p>
             </div>
@@ -764,7 +773,7 @@
   <p class="lead">Todo lo que hace falta para leer lo que se ve en pantalla, de lo básico a los detalles que suelen confundir.</p>
 
           <h3>Los dos campos</h3>
-          <p>El campo eléctrico de una onda plana se escribe con dos componentes transversales: <code>Ex = Ax·cos(kz − ωt)</code> y <code>Ey = Ay·cos(kz − ωt + δ)</code>. El campo magnético no es independiente: en el vacío vale <code>B = (1/c)·ẑ × E</code>, es decir, la misma forma girada 90° alrededor del eje de propagación y en fase con E. Aquí se dibuja multiplicado por <code>c</code> para que sea visible; en unidades reales sería unas 3·10⁸ veces más pequeño.</p>
+          <p>El campo eléctrico de una onda plana se escribe con dos componentes transversales: <code>Ex = Ax·cos(kz − ωt)</code> y <code>Ey = Ay·cos(kz − ωt + δ)</code>. El campo magnético no es independiente: en el vacío vale <code>B = (1/c)·ẑ × E</code>, es decir, la misma forma girada 90° alrededor del eje de propagación y en fase con E. Aquí se dibuja multiplicado por <code>c</code> para que sea visible; su valor numérico en unidades del SI es unas 3·10⁸ veces menor, porque |B| = |E|/c.</p>
 
           <h3>La polarización es solo el desfase</h3>
           <ul>
@@ -836,10 +845,12 @@
 
   <h3>Sobre el generador</h3>
   <p>Modelo de propagación único para las dos vistas: el campo en un punto es el valor de la fuente en el instante retardado <code>t − d/v</code>, con <code>v = λ/T</code> constante. Es exacto en un medio sin dispersión como el vacío. El desfase δ se aplica como retardo temporal de la componente y, que es lo que generaliza la polarización a formas de onda no sinusoidales.</p>
-  <p>Los parámetros de Stokes se calculan siempre por promedios temporales sobre un periodo (o sobre los últimos 3 s con el generador manual): s₁ y s₂ directamente, el signo de s₃ por el sentido de giro medio y su módulo cerrando la esfera. Con una sinusoide el resultado coincide exactamente con las fórmulas analíticas. Con cualquier otra forma de onda hay que leerlo con cuidado: Stokes y la esfera de Poincaré están definidos para ondas monocromáticas, y una triangular o un pulso no lo son, así que lo que se muestra es el estado medio equivalente, no una descripción completa.</p>
+  <p>Los parámetros de Stokes se obtienen de la <b>matriz de coherencia</b>, sumada armónico a armónico. La señal se descompone por DFT sobre un periodo (con el generador manual, sobre una ventana de Hann de los últimos segundos) y cada armónico n aporta su peso con un desfase n·δ. De ahí salen s₁, s₂, s₃ y el grado de polarización √(s₁²+s₂²+s₃²). Con una sinusoide se reduce exactamente a las fórmulas clásicas s₂ = 2·Ax·Ay·cos δ / s₀ y s₃ = 2·Ax·Ay·sin δ / s₀, comprobado numéricamente.</p>
+  <p>El tipo, la inclinación ψ y la relación axial describen la <b>parte polarizada</b> del estado, normalizada por el grado de polarización. Cuando este baja del 98 % la interfaz lo dice expresamente en vez de presentar el estado como si fuera puro. Una versión anterior de esta herramienta obtenía |s₃| cerrando la esfera, es decir, dando por supuesta polarización total; eso es válido solo para ondas monocromáticas y llegaba a etiquetar como «circular perfecta» una onda cuadrada cuya trayectoria dibujada era literalmente un cuadrado.</p>
   <p>A las formas de onda predefinidas se les ha quitado la componente continua, incluida la sinc, a la que se le resta su valor medio de 0,143577 antes de renormalizar: un campo con componente continua no se radia.</p>
 
   <h3>Sobre el modo de radiación 3D</h3>
+  <p>Los diagramas son <b>monocromáticos</b>: valen para la frecuencia fundamental. Como el diagrama de un dipolo depende de su longitud eléctrica, cada armónico de una señal no sinusoidal vería una antena distinta (un «dipolo λ/2» es un dipolo de 1,5 λ para su tercer armónico, con 3,5 dBi y el máximo a 43° en vez de al horizonte). La interfaz avisa de ello con las cifras concretas cuando corresponde. El único diagrama de la lista independiente de la frecuencia es el del dipolo corto, sin θ. Sumar los diagramas de todos los armónicos queda como mejora pendiente.</p>
   <p>Solo campo lejano (zona de Fraunhofer) de radiadores lineales con simetría de revolución, alimentados con corriente sinusoidal y sin pérdidas. No hay campo cercano, ni acoplo, ni suelo real, ni impedancia. La amplitud va como 1/r y la densidad de potencia como 1/r². Los diagramas usados, con θ medido desde el eje de la antena:</p>
   <dl class="conv">
     <dt>Dipolo corto</dt><dd>F(θ) = sin θ</dd>
@@ -856,6 +867,7 @@
   <h3>Comprobaciones numéricas</h3>
   <ul>
     <li>El campo propagado por el registro reproduce la sinusoide analítica con error máximo de 1,5·10⁻⁴ y periodicidad espacial λ = 2 exacta.</li>
+    <li>Los parámetros de Stokes y el grado de polarización coinciden con un cálculo independiente por análisis armónico: 100 %, 97,5 %, 74,4 %, 57,2 %, 35,5 % y 2,8 % para las seis formas de onda con δ = 90°.</li>
     <li>Las directividades calculadas coinciden con los valores de libro: 1,76 dBi el dipolo corto, 2,15 el λ/2, 3,82 el de 1λ y 5,15 el monopolo λ/4; los anchos de haz dan 78° y 39° respectivamente.</li>
     <li>La base esférica usada es dextrógira en toda la esfera: (E × B)·r̂ = 1 en las 380 direcciones comprobadas, es decir, el vector de Poynting apunta hacia fuera en cualquier dirección.</li>
     <li>El estimador devuelve s₃ = 1,00 para un gesto circular, s₂ = 1,00 para uno lineal a 45° y s₁ = 1,00 para uno horizontal.</li>
@@ -1241,44 +1253,88 @@ function figAt(u){
   var tau=u*refPeriod(), sh=S.delta/360*refPeriod();
   return [S.Ax*waveAt(tau/T0), S.Ay*waveAt((tau-sh)/T0)];
 }
-/* Los parámetros de Stokes se obtienen siempre por promedios temporales: con la
-   sinusoide coinciden exactamente con las fórmulas analíticas, y con cualquier
-   otra forma de onda siguen describiendo el estado medio. El signo de s₃ sale
-   del sentido de giro y su módulo de cerrar la esfera. */
+
+/* ---------- Stokes por matriz de coherencia ----------
+   La polarización se define armónico a armónico, no sobre la forma de onda
+   entera: un retardo temporal τ desfasa el armónico n en n·ω·τ, así que cada
+   uno acaba en un estado distinto y hasta con sentidos de giro opuestos. Por
+   eso se descompone la señal en sus armónicos, se suma la matriz de coherencia
+   y de ahí salen los parámetros y el grado de polarización.
+
+   Para una sinusoide solo hay un armónico y el resultado coincide exactamente
+   con las fórmulas clásicas s2 = 2·Ax·Ay·cos δ / s0 y s3 = 2·Ax·Ay·sin δ / s0. */
+var ARM_CACHE={};
+function pesosArmonicos(wave){
+  if(ARM_CACHE[wave]) return ARM_CACHE[wave];
+  var N=2048, NH=96, i, n, re, im, muestras=new Float64Array(N);
+  var anterior=GEN.wave; GEN.wave=wave;
+  for(i=0;i<N;i++) muestras[i]=waveAt(i/N);
+  GEN.wave=anterior;
+  var pesos=[], total=0;
+  for(n=1;n<=NH;n++){
+    re=0; im=0;
+    for(i=0;i<N;i++){
+      var a=2*Math.PI*n*i/N;
+      re+=muestras[i]*Math.cos(a); im-=muestras[i]*Math.sin(a);
+    }
+    var pot=(re*re+im*im)*4/(N*N);
+    pesos.push(pot); total+=pot;
+  }
+  for(n=0;n<pesos.length;n++) pesos[n]/= (total||1);
+  return (ARM_CACHE[wave]={ w:pesos, total:total });
+}
+function stokesPreset(){
+  var s0=S.Ax*S.Ax+S.Ay*S.Ay;
+  liveEnergy=s0/2;
+  if(s0<1e-9) return {s1:0,s2:0,s3:0,dop:0,arm:[]};
+  var pesos=pesosArmonicos(GEN.wave).w, d=rad(S.delta), c=0, sn=0, i, arm=[];
+  for(i=0;i<pesos.length;i++){
+    if(pesos[i]<1e-6) continue;
+    var n=i+1;
+    c += pesos[i]*Math.cos(n*d);
+    sn += pesos[i]*Math.sin(n*d);
+    if(pesos[i]>=0.02) arm.push({ n:n, p:pesos[i], giro:Math.sin(n*d) });
+  }
+  var k=2*S.Ax*S.Ay/s0;
+  var st={ s1:(S.Ax*S.Ax-S.Ay*S.Ay)/s0, s2:k*c, s3:k*sn, arm:arm };
+  st.dop=Math.min(1,Math.sqrt(st.s1*st.s1+st.s2*st.s2+st.s3*st.s3));
+  return st;
+}
+
+/* Con el gesto manual no hay periodo: se toma una ventana de los últimos
+   segundos y se calcula la misma matriz de coherencia sobre su espectro. */
+function stokesGesto(){
+  var N=256, i, k, ventana=new Float64Array(N), xs=new Float64Array(N), ys=new Float64Array(N);
+  var pot=0;
+  for(i=0;i<N;i++){
+    var a=((rhead-(N-1-i))%RING+RING)%RING;
+    ventana[i]=0.5-0.5*Math.cos(2*Math.PI*i/(N-1));       /* Hann */
+    xs[i]=ring[a*2]*ventana[i]; ys[i]=ring[a*2+1]*ventana[i];
+    pot+=ring[a*2]*ring[a*2]+ring[a*2+1]*ring[a*2+1];
+  }
+  liveEnergy=pot/N;
+  if(liveEnergy<0.004) return {s1:0,s2:0,s3:0,dop:0,arm:[]};
+  var Jxx=0, Jyy=0, Jre=0, Jim=0;
+  for(k=1;k<N/2;k++){
+    var xr=0, xi=0, yr=0, yi=0;
+    for(i=0;i<N;i++){
+      var ang=2*Math.PI*k*i/N, co=Math.cos(ang), si=Math.sin(ang);
+      xr+=xs[i]*co; xi-=xs[i]*si;
+      yr+=ys[i]*co; yi-=ys[i]*si;
+    }
+    Jxx+=xr*xr+xi*xi; Jyy+=yr*yr+yi*yi;
+    Jre+=xr*yr+xi*yi;          /* Re(X·conj(Y)) */
+    Jim+=xi*yr-xr*yi;          /* Im(X·conj(Y)) */
+  }
+  var s0=Jxx+Jyy;
+  if(s0<1e-12) return {s1:0,s2:0,s3:0,dop:0,arm:[]};
+  var st={ s1:(Jxx-Jyy)/s0, s2:2*Jre/s0, s3:2*Jim/s0, arm:[] };
+  st.dop=Math.min(1,Math.sqrt(st.s1*st.s1+st.s2*st.s2+st.s3*st.s3));
+  return st;
+}
 var liveEnergy=0;
-function presetStokes(){
-  var N=256, i, v, ex2=0, ey2=0, exy=0, cross=0, prev=null;
-  for(i=0;i<=N;i++){
-    v=figAt(i/N);
-    ex2+=v[0]*v[0]; ey2+=v[1]*v[1]; exy+=v[0]*v[1];
-    if(prev) cross += prev[0]*(v[1]-prev[1]) - prev[1]*(v[0]-prev[0]);
-    prev=v;
-  }
-  var s0=ex2+ey2;
-  liveEnergy=s0/(N+1);
-  if(s0<1e-6) return {s1:0,s2:0,s3:0};
-  var s1=(ex2-ey2)/s0, s2=2*exy/s0, lin=Math.hypot(s1,s2);
-  return { s1:s1, s2:s2, s3:Math.sqrt(Math.max(0,1-lin*lin))*(cross>=0?1:-1) };
-}
-function liveStokes(){
-  var N=180, i, a, b, ex, ey, ex2=0, ey2=0, exy=0, cross=0, prev=null;
-  for(i=N;i>=0;i--){
-    a=((rhead-i)%RING+RING)%RING;
-    ex=ring[a*2]; ey=ring[a*2+1];
-    ex2+=ex*ex; ey2+=ey*ey; exy+=ex*ey;
-    if(prev) cross += prev[0]*(ey-prev[1]) - prev[1]*(ex-prev[0]);
-    prev=[ex,ey];
-  }
-  var s0=ex2+ey2;
-  liveEnergy = s0/(N+1);
-  if(s0<1e-4) return {s1:0,s2:0,s3:0};
-  var s1=(ex2-ey2)/s0, s2=(2*exy)/s0;
-  var lin=Math.hypot(s1,s2);
-  var s3=Math.sqrt(Math.max(0,1-lin*lin))*(cross>=0?1:-1);
-  return { s1:s1, s2:s2, s3:s3 };
-}
 function stokes(){
-  return GEN.src==="preset" ? presetStokes() : liveStokes();
+  return GEN.src==="preset" ? stokesPreset() : stokesGesto();
 }
 function drawPoincare(){
   if(S.mode==="space") return drawHplane();
@@ -1311,7 +1367,7 @@ function drawPoincare(){
     pctx.fillText(marks[i][3], c+p.x*R*1.22, c+p.y*R*1.22);
   }
   var st=stokes();
-  if(GEN.src!=="preset" && liveEnergy<0.004){
+  if(liveEnergy<0.004){
     pctx.fillStyle="rgba(150,175,205,.5)";
     pctx.font='400 12px "Archivo",system-ui,sans-serif';
     pctx.fillText("sin señal", c, c+R*1.55);
@@ -1322,6 +1378,16 @@ function drawPoincare(){
   pctx.strokeStyle="rgba(242,160,30,.45)"; pctx.setLineDash([3,3]); pctx.lineWidth=1.2;
   pctx.beginPath(); pctx.moveTo(px,py); pctx.lineTo(c+eq.x*R,c+eq.y*R); pctx.stroke();
   pctx.setLineDash([]);
+  /* si no está totalmente polarizado, el punto cae dentro de la esfera: se
+     dibuja el radio hasta el centro para que se vea la profundidad */
+  var dop=st.dop!==undefined?st.dop:1;
+  if(dop<0.97){
+    pctx.strokeStyle="rgba(242,160,30,.35)"; pctx.lineWidth=1.4;
+    pctx.beginPath(); pctx.moveTo(c,c); pctx.lineTo(px,py); pctx.stroke();
+    pctx.fillStyle="rgba(150,175,205,.75)";
+    pctx.font='500 12px "Archivo",system-ui,sans-serif'; pctx.textAlign="center";
+    pctx.fillText((dop*100).toFixed(0)+" % polarizada", c, c+R*1.55);
+  }
   pctx.fillStyle="rgba(242,160,30,"+(p.d>0?1:0.45)+")";
   pctx.beginPath(); pctx.arc(px,py,7,0,2*Math.PI); pctx.fill();
   pctx.strokeStyle="rgba(15,17,22,.9)"; pctx.lineWidth=2; pctx.stroke();
@@ -1331,28 +1397,36 @@ function drawPoincare(){
 var lastTipo="";
 function describe(){
   var st=stokes();
-  if(GEN.src!=="preset"){
-    var lin=Math.hypot(st.s1,st.s2);
-    var tp = liveEnergy<0.004 ? "Sin señal" : (lin>0.88 ? "Casi lineal" : (lin<0.25 ? "Casi circular" : "Elíptica"));
-    var sn = (liveEnergy<0.004 || lin>0.88) ? "—" : (st.s3>0 ? "dextrógira (IEEE)" : "levógira (IEEE)");
-    return { tipo:tp, sent:sn, psi:"—", ar:"—", st:st };
-  }
-  if(S.Ax<0.005 && S.Ay<0.005) return { tipo:"Sin campo", sent:"—", psi:"—", ar:"—", st:st };
-  var chi=0.5*Math.asin(clamp(st.s3,-1,1));
+  var vacio = GEN.src==="preset" ? (S.Ax<0.005 && S.Ay<0.005) : (liveEnergy<0.004);
+  if(vacio) return { tipo:GEN.src==="preset"?"Sin campo":"Sin señal", sent:"—", psi:"—", ar:"—",
+                     st:st, dop:0, parcial:false, base:"ninguna" };
+
+  /* El tipo y la relación axial describen la PARTE POLARIZADA. Cuando el grado
+     de polarización baja, se dice explícitamente en vez de presentarlo como si
+     fuera un estado puro. */
+  var dop=st.dop||0;
+  var n1=dop>1e-6?st.s1/dop:0, n2=dop>1e-6?st.s2/dop:0, n3=dop>1e-6?st.s3/dop:0;
+  var chi=0.5*Math.asin(clamp(n3,-1,1));
   var tan=Math.abs(Math.tan(chi));
   var arv = tan<1e-6 ? Infinity : 1/tan;
   var ardb = arv===Infinity ? Infinity : 20*Math.log10(arv);
-  var ps=0.5*Math.atan2(st.s2,st.s1)*180/Math.PI;
+  var ps=0.5*Math.atan2(n2,n1)*180/Math.PI;
   if(ps<0) ps+=180;
   if(ps>=179.95) ps-=180;
   var psTxt=ps.toFixed(1).replace(".",",")+"°";
-  var tipo, ar, psi;
-  if(Math.abs(st.s3)<0.02){ tipo="Lineal"; ar="∞ (recta)"; psi=psTxt; }
-  else if(ardb<0.6){ tipo="Circular"; ar="1.00 · 0.0 dB"; psi="indefinida"; }
-  else { tipo="Elíptica"; ar=arv.toFixed(2)+" · "+ardb.toFixed(1)+" dB"; psi=psTxt; }
-  var sent = Math.abs(st.s3)<0.02 ? "—" : (st.s3>0 ? "dextrógira (IEEE)" : "levógira (IEEE)");
-  return { tipo:tipo, sent:sent, psi:psi, ar:ar, st:st };
+
+  var base, ar, psi;
+  if(Math.abs(n3)<0.02){ base="lineal"; ar="∞ (recta)"; psi=psTxt; }
+  else if(ardb<0.6){ base="circular"; ar="1,00 · 0,0 dB"; psi="indefinida"; }
+  else { base="elíptica"; ar=arv.toFixed(2).replace(".",",")+" · "+ardb.toFixed(1).replace(".",",")+" dB"; psi=psTxt; }
+  var sent = Math.abs(n3)<0.02 ? "—" : (n3>0 ? "dextrógira (IEEE)" : "levógira (IEEE)");
+
+  var parcial = dop<0.98;
+  var tipo = base.charAt(0).toUpperCase()+base.slice(1);
+  if(parcial) tipo = "Parcialmente polarizada";
+  return { tipo:tipo, base:base, sent:sent, psi:psi, ar:ar, st:st, dop:dop, parcial:parcial };
 }
+
 function updateFacts(){
   if(S.mode==="space"){ updateSpaceFacts(); updateShareUrl(); return; }
   var r=describe();
@@ -1360,6 +1434,7 @@ function updateFacts(){
   $("rSent").textContent=r.sent;
   $("rPsi").textContent=r.psi;
   $("rAR").textContent=r.ar;
+  $("rDop").textContent=(r.dop*100).toFixed(1).replace(".",",")+" %";
   $("rStokes").textContent=r.st.s1.toFixed(2)+"  "+r.st.s2.toFixed(2)+"  "+r.st.s3.toFixed(2);
   $("rDelta").textContent = GEN.src==="manual" ? "—" : (S.delta>0?"+":"")+Math.round(S.delta)+"°";
   var tag=r.tipo+" "+r.sent;
@@ -1766,6 +1841,32 @@ function antCalc(){
   antStats={ dbi:10*Math.log10(D), hpbw:hp, d:D };
 }
 function FA(t){ return ANT[S.ant].f(t)/antNorm; }
+
+/* El diagrama de una antena depende de su longitud ELÉCTRICA, así que cada
+   armónico de la señal ve una antena distinta. Esto calcula qué vería. */
+function dipolo(L,t){
+  var s=Math.sin(t); if(Math.abs(s)<1e-9) return 0;
+  return Math.abs((Math.cos(Math.PI*L*Math.cos(t))-Math.cos(Math.PI*L))/s);
+}
+function antEnArmonico(clave,n){
+  var f;
+  if(clave==="half"||clave==="mono") f=function(t){ return (clave==="mono"&&t>Math.PI/2)?0:dipolo(0.5*n,t); };
+  else if(clave==="full") f=function(t){ return dipolo(1*n,t); };
+  else if(clave==="coll") f=function(t){
+    var el=dipolo(0.5*n,t), psi=2*Math.PI*(0.5*n)*Math.cos(t), den=Math.sin(psi/2);
+    var af=Math.abs(den)<1e-9?4:Math.sin(4*psi/2)/den;
+    return Math.abs(el*af)/4;
+  };
+  else return null;
+  var N=3000, dt=Math.PI/N, i, t, m=0, tmax=0;
+  for(i=0;i<=N;i++){ t=i*dt; var v=f(t); if(v>m){ m=v; tmax=t; } }
+  if(m<=0) return null;
+  var s=0;
+  for(i=0;i<=N;i++){ t=i*dt; var v=f(t)/m, w=(i===0||i===N)?1:(i%2?4:2); s+=w*v*v*Math.sin(t); }
+  s*=dt/3;
+  return { dbi:10*Math.log10(2/s), maxDeg:tmax*180/Math.PI,
+           horiz:20*Math.log10(Math.max(1e-6,f(Math.PI/2)/m)), L:(clave==="full"?1:0.5)*n };
+}
 function sph(t,ph){
   var st=Math.sin(t), ct=Math.cos(t), cp=Math.cos(ph), sp=Math.sin(ph);
   return { r:[st*cp, ct, st*sp], th:[ct*cp, -st, ct*sp], b:[sp, 0, -cp] };
@@ -1790,7 +1891,7 @@ function meanDepth(pts){
 
 /* --- corte de campo: el valor instantáneo y con signo de E sobre un plano,
        evaluado celda a celda. Ámbar hacia un lado, azul hacia el otro. --- */
-S.sliceV=false; S.sliceH=false; S.showProbe=true; S.probe=90; S.probeNorm=true;
+S.sliceV=false; S.sliceH=false; S.showProbe=true; S.probe=90; S.probeNorm=false; S.polarDb=true;
 var SLICE_COL=[], SLICE_N=12;
 (function(){
   for(var i=0;i<=2*SLICE_N;i++){
@@ -1844,6 +1945,9 @@ function drawProbe(){
   poly([P(0,0,0),end],"#b9cbe4",0.55,1.3);
   label("dirección de sonda · θ = "+Math.round(S.probe)+"°",
         {x:end.x, y:end.y-14}, "#b9cbe4", 0.9, 12);
+  if(S.probeNorm){
+    label("sonda con la caída 1/r compensada (ayuda visual)",{x:W/2,y:H-24},"#d98c12",0.95,12);
+  }
   if(F0<0.02){
     label("no hay radiación en esta dirección", {x:end.x, y:end.y+4}, "#8a9cb4", 0.85, 11.5);
     return;
@@ -1970,19 +2074,33 @@ function renderSpace(){
 }
 
 /* cortes polares del patrón */
+/* En antenas se lee casi siempre en dB: una escala lineal engaña sobre el
+   tamaño aparente de los lóbulos. Rango de 40 dB. */
+var DBRANGE=40;
+function radioPolar(v){
+  if(!S.polarDb) return v;
+  if(v<=1e-6) return 0;
+  return Math.max(0, 1 + 20*Math.log10(v)/DBRANGE);
+}
 function drawEplane(){
   var w=380, c=w/2, R=w*0.36, i, a, t, v, x, y;
   mctx.clearRect(0,0,w,w);
   mctx.fillStyle="#0f1116"; mctx.fillRect(0,0,w,w);
   mctx.strokeStyle="rgba(125,155,190,.2)"; mctx.lineWidth=1;
   for(i=1;i<=3;i++){ mctx.beginPath(); mctx.arc(c,c,R*i/3,0,2*Math.PI); mctx.stroke(); }
+  mctx.font='500 11px "Chivo Mono",monospace'; mctx.fillStyle="rgba(150,175,205,.6)";
+  mctx.textAlign="left"; mctx.textBaseline="middle";
+  for(i=1;i<=3;i++){
+    var et = S.polarDb ? (-DBRANGE+DBRANGE*i/3).toFixed(0)+" dB" : (i/3).toFixed(2).replace(".",",");
+    mctx.fillText(et, c+4, c-R*i/3);
+  }
   mctx.beginPath(); mctx.moveTo(c-R*1.1,c); mctx.lineTo(c+R*1.1,c);
   mctx.moveTo(c,c-R*1.1); mctx.lineTo(c,c+R*1.1); mctx.stroke();
   mctx.strokeStyle="rgba(147,167,192,.95)"; mctx.lineWidth=2.2; mctx.beginPath();
   for(i=0;i<=240;i++){
     a=i/240*2*Math.PI;
     t = a<=Math.PI ? a : 2*Math.PI-a;
-    v=FA(t)*R;
+    v=radioPolar(FA(t))*R;
     x=c+v*Math.sin(a)*(a<=Math.PI?1:-1); y=c-v*Math.cos(a);
     i?mctx.lineTo(x,y):mctx.moveTo(x,y);
   }
@@ -1998,10 +2116,16 @@ function drawHplane(){
   pctx.fillStyle="#0f1116"; pctx.fillRect(0,0,w,w);
   pctx.strokeStyle="rgba(125,155,190,.2)"; pctx.lineWidth=1;
   for(i=1;i<=3;i++){ pctx.beginPath(); pctx.arc(c,c,R*i/3,0,2*Math.PI); pctx.stroke(); }
+  pctx.font='500 11px "Chivo Mono",monospace'; pctx.fillStyle="rgba(150,175,205,.6)";
+  pctx.textAlign="left"; pctx.textBaseline="middle";
+  for(i=1;i<=3;i++){
+    var et2 = S.polarDb ? (-DBRANGE+DBRANGE*i/3).toFixed(0)+" dB" : (i/3).toFixed(2).replace(".",",");
+    pctx.fillText(et2, c+4, c-R*i/3);
+  }
   pctx.beginPath(); pctx.moveTo(c-R*1.1,c); pctx.lineTo(c+R*1.1,c);
   pctx.moveTo(c,c-R*1.1); pctx.lineTo(c,c+R*1.1); pctx.stroke();
   pctx.strokeStyle="rgba(147,167,192,.95)"; pctx.lineWidth=2.2;
-  pctx.beginPath(); pctx.arc(c,c,Math.max(2,v*R),0,2*Math.PI); pctx.stroke();
+  pctx.beginPath(); pctx.arc(c,c,Math.max(2,radioPolar(v)*R),0,2*Math.PI); pctx.stroke();
   pctx.fillStyle="rgba(232,240,255,.9)"; pctx.beginPath(); pctx.arc(c,c,4,0,2*Math.PI); pctx.fill();
   pctx.font='500 12.5px "Archivo",system-ui,sans-serif';
   pctx.fillStyle="rgba(150,175,205,.8)"; pctx.textAlign="center"; pctx.textBaseline="middle";
@@ -2011,7 +2135,8 @@ function updateSpaceFacts(){
   var A=ANT[S.ant];
   $("sAnt").textContent=A.n;
   $("sDir").textContent=antStats.d.toFixed(2)+" · "+antStats.dbi.toFixed(2)+" dBi";
-  $("sHp").textContent=isFinite(antStats.hpbw)?antStats.hpbw.toFixed(0)+"°":"—";
+  $("sHp").textContent = !isFinite(antStats.hpbw) ? "—"
+    : antStats.hpbw.toFixed(0)+"°"+(S.ant==="mono"?" (solo por encima del horizonte)":"");
   $("sAz").textContent=FA(Math.PI/2)>0.02?"omnidireccional":"—";
   $("sPol").textContent=S.ant==="iso"?"no definida":"lineal, en el plano del eje";
   var fv=FA(rad(S.probe));
@@ -2030,6 +2155,7 @@ Array.prototype.forEach.call(document.querySelectorAll("#antChips button"),funct
 bindToggle("tPat","showPat"); bindToggle("tWav","showWav");
 bindToggle("tSV","sliceV"); bindToggle("tSH","sliceH"); bindToggle("tPr","showProbe");
 bindToggle("tNorm","probeNorm");
+bindToggle("tDb","polarDb");
 $("pr").addEventListener("input",function(){
   S.probe=parseFloat(this.value); $("vpr").textContent=Math.round(S.probe)+"°"; updateSpaceFacts();
 });
@@ -2246,50 +2372,75 @@ function updateChrome(){
     var expl={
       iso:"Reparte la potencia por igual en todas las direcciones. No existe ninguna antena así: está aquí solo como referencia, porque es contra ella contra la que se miden los dBi de todas las demás.",
       short:"Reparte la potencia en forma de rosquilla: lo máximo hacia todo el horizonte y nada en la dirección de su propio eje. Contra lo que sugiere la intuición, una antena no radia hacia donde apunta.",
-      half:"Reparte la potencia en forma de rosquilla: lo máximo hacia todo el horizonte y nada en la dirección de su propio eje. Es el radiador de referencia con el que se compara casi todo.",
+      half:"Reparte la potencia en forma de rosquilla: lo máximo hacia todo el horizonte y nada en la dirección de su propio eje. Es el radiador de referencia práctico en radiocomunicación, aunque aquí las ganancias se dan en dBi, es decir, respecto a la isotrópica.",
       full:"Al alargar la antena la rosquilla se estrecha: concentra más hacia el horizonte y deja fuera las direcciones altas.",
       mono:"El plano de masa hace de espejo: refleja hacia arriba lo que iría hacia abajo, así que radia media rosquilla con el doble de intensidad. Por eso un monopolo gana 3 dB sobre el dipolo del que sale.",
       coll:"Cuatro elementos en fila aplastan la rosquilla contra el horizonte: más alcance en llano a cambio de un haz vertical mucho más estrecho, y aparecen lóbulos laterales."
     }[S.ant];
     $("vKicker").textContent="Lo que hace esta antena";
-    $("vTitle").textContent=A.n+" · "+gan+" dBi";
-    $("vText").textContent=expl+" El color de las capas son los dos semiciclos del campo eléctrico, y se apagan donde la antena no radia.";
+    $("vTitle").textContent=A.n+" · "+gan+" dBi de directividad";
+    var aviso="";
+    if(GEN.src==="preset" && GEN.wave!=="sine" && S.ant!=="short" && S.ant!=="iso"){
+      var pesos=pesosArmonicos(GEN.wave).w, mejor=0, nMejor=0, i;
+      for(i=1;i<pesos.length;i++){ if(pesos[i]>mejor){ mejor=pesos[i]; nMejor=i+1; } }
+      var h=nMejor?antEnArmonico(S.ant,nMejor):null;
+      if(h && mejor>0.01){
+        aviso=" Aviso: el diagrama mostrado es el de la frecuencia fundamental. Esta señal lleva un "+
+              (mejor*100).toFixed(0)+" % de su potencia en el armónico "+nMejor+
+              ", que vería una antena de "+h.L.toFixed(1).replace(".",",")+" λ, con "+
+              h.dbi.toFixed(1).replace(".",",")+" dBi y el máximo a "+h.maxDeg.toFixed(0)+
+              "° en vez de al horizonte. El dipolo corto es el único de la lista inmune a esto, porque su sin θ no depende de la frecuencia.";
+      }
+    }
+    $("vText").textContent=expl+" El color de las capas son los dos semiciclos del campo eléctrico, y se apagan donde la antena no radia."+aviso;
+    $("vHarm").hidden=true;
     $("p1Cap").textContent="Corte vertical, con la antena de pie en el centro. La forma de ocho es la firma del dipolo: dos lóbulos y un cero arriba y abajo.";
     $("p2Cap").textContent="Corte horizontal, lo que mediría alguien dando una vuelta alrededor. Que salga un círculo es justo lo que significa «omnidireccional».";
+    $("vKicker").textContent="Lo que hace esta antena"+(GEN.src==="manual"?" · propagación dibujada 2,5× más rápida para que el gesto se resuelva":"");
   } else {
-    /* El estado se clasifica igual venga de una fórmula o de un gesto, pero con
-       el gesto es una estimación sobre los últimos segundos, así que el texto
-       lo dice en lugar de afirmarlo como si fuera exacto. */
     var manual = GEN.src==="manual";
-    var clave = r.tipo.replace("Casi ","").toLowerCase();
-    var aprox = manual ? "aproximadamente " : "";
+    var dopPct=(r.dop*100).toFixed(0);
     var t, cap;
-    if(clave==="sin señal" || clave==="sin campo"){
+    if(r.base==="ninguna"){
       t = manual ? "Todavía no hay señal" : "Sin campo";
       cap = manual
         ? "Arrastra dentro del cuadro que hay sobre la escena: lo que dibujes sale emitido desde el origen y viaja por el eje z."
         : "Las dos amplitudes están a cero. Sube alguna en el paso de polarización y la onda aparecerá.";
-    } else if(clave==="lineal"){
+    } else if(r.base==="lineal"){
       t="Polarización lineal";
-      cap="Las dos componentes suben y bajan a la vez, así que la punta del campo eléctrico va y viene "+aprox+"sobre una recta"+(manual?"":", a "+r.psi+" de la horizontal")+". Es lo que emite cualquier antena de un solo elemento, como el dipolo de una radio.";
-    } else if(clave==="circular"){
+      cap="Las dos componentes suben y bajan a la vez, así que la punta del campo eléctrico va y viene sobre una recta"+(manual?"":", a "+r.psi+" de la horizontal")+". Es lo que emite cualquier antena de un solo elemento, como el dipolo de una radio.";
+    } else if(r.base==="circular"){
       t="Polarización circular "+sentF;
-      cap="Las dos componentes valen "+(manual?"casi ":"")+"lo mismo y van desfasadas un cuarto de ciclo: cuando una pasa por su máximo, la otra vale cero. La punta del campo describe "+aprox+"una circunferencia, girando en sentido "+sentM+". Es la que usan el GPS y los enlaces con satélite, porque funciona sin importar cómo esté orientado el receptor.";
+      cap="Las dos componentes valen lo mismo y van desfasadas un cuarto de ciclo: cuando una pasa por su máximo, la otra vale cero. La punta del campo describe una circunferencia, girando en sentido "+sentM+". Es la que usan el GPS y los enlaces con satélite, porque funciona sin importar cómo esté orientado el receptor.";
     } else {
       t="Polarización elíptica "+sentF;
-      cap="La punta del campo eléctrico recorre "+aprox+"una elipse"+(manual?"":" cuyo eje mayor está a "+r.psi+" de la horizontal")+", girando en sentido "+sentM+". Este es en realidad el caso general: la recta y la circunferencia solo son sus dos extremos.";
+      cap="La punta del campo eléctrico recorre una elipse"+(manual?"":" cuyo eje mayor está a "+r.psi+" de la horizontal")+", girando en sentido "+sentM+". Este es en realidad el caso general: la recta y la circunferencia solo son sus dos extremos.";
     }
-    if(!manual && !(GEN.src==="preset" && GEN.wave==="sine") && clave!=="sin campo"){
-      cap += " Con esta forma de onda la figura ya no es una elipse exacta, sino la curva de Lissajous que le corresponde.";
-    }
-    if(manual && clave!=="sin señal"){
-      cap += " Es una lectura estimada sobre los últimos segundos de tu gesto, no un valor exacto: la polarización no es una foto de un instante, es un patrón sostenido en el tiempo.";
+
+    /* Cuando la señal no es monocromática, cada armónico tiene su propio estado
+       de polarización y el conjunto deja de estar totalmente polarizado. */
+    if(r.parcial && r.base!=="ninguna"){
+      t="Parcialmente polarizada · "+dopPct+" %";
+      cap="Esta señal no es monocromática: son varios armónicos a la vez, y un retardo en el tiempo desfasa a cada uno de forma distinta, así que unos giran hacia un lado y otros hacia el contrario. En conjunto solo el "+dopPct+" % de la potencia está polarizada, y esa parte es "+r.base+(r.sent!=="—"?" "+sentF:"")+". La figura que ves dibujada sí es exacta: es la trayectoria real de la punta del campo.";
     }
     $("vKicker").textContent=(manual?"Tu gesto":"Una onda "+WAVE_N[GEN.wave].toLowerCase())+" avanzando en +z";
     $("vTitle").textContent=t;
     $("vText").textContent=cap;
+
+    /* desglose por armónicos: de dónde sale el grado de polarización */
+    var arm=r.st.arm||[];
+    if(arm.length>1){
+      $("vHarm").hidden=false;
+      $("vHarm").innerHTML = arm.slice(0,5).map(function(a){
+        var g=Math.abs(a.giro)<0.05 ? "lineal" : (a.giro>0 ? "dextro" : "levo");
+        return '<span><b>n'+a.n+'</b> '+(a.p*100).toFixed(0)+' % · '+g+'</span>';
+      }).join("");
+    } else $("vHarm").hidden=true;
+
     $("p1Cap").textContent="Lo que verías si la onda viniera directamente hacia ti: el campo eléctrico en ámbar, el magnético en violeta, siempre perpendiculares.";
-    $("p2Cap").textContent="Un mapa donde cada punto es un estado de polarización distinto. El ecuador son los lineales y los polos los circulares.";
+    $("p2Cap").textContent = r.parcial
+      ? "Cada punto es un estado de polarización. Los totalmente polarizados están en la superficie; este se hunde hacia el centro porque solo lo está en parte."
+      : "Un mapa donde cada punto es un estado de polarización distinto. El ecuador son los lineales y los polos los circulares.";
   }
   renumber();
 }

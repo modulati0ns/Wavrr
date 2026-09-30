@@ -102,33 +102,37 @@ for (let t = 0; t < 1.2; t += 0.1) {
 }
 comprueba("δ = +90° gira de x hacia y (dextrógira)", creciente, true);
 
-/* ---------- 4. parámetros de Stokes ---------- */
-console.log("\nParámetros de Stokes por promedios temporales");
-function stokesDe(Ax, Ay, deltaDeg) {
-  S.Ax = Ax; S.Ay = Ay; S.delta = deltaDeg;
-  const N = 2048;
-  let ex2 = 0, ey2 = 0, exy = 0, cross = 0, prev = null;
-  for (let i = 0; i <= N; i++) {
-    const tau = (i / N) * refPeriod();
-    const sh = (deltaDeg / 360) * refPeriod();
-    const v = [Ax * waveAt(tau / T0), Ay * waveAt((tau - sh) / T0)];
-    ex2 += v[0] * v[0]; ey2 += v[1] * v[1]; exy += v[0] * v[1];
-    if (prev) cross += prev[0] * (v[1] - prev[1]) - prev[1] * (v[0] - prev[0]);
-    prev = v;
-  }
-  const s0 = ex2 + ey2;
-  const s1 = (ex2 - ey2) / s0, s2 = (2 * exy) / s0;
-  const lin = Math.hypot(s1, s2);
-  return { s1, s2, s3: Math.sqrt(Math.max(0, 1 - lin * lin)) * (cross >= 0 ? 1 : -1) };
+/* ---------- 4. Stokes y grado de polarización ---------- */
+console.log("\nStokes por matriz de coherencia, δ = 90°, amplitudes iguales");
+// Referencia calculada aparte por análisis armónico: la polarización se define
+// armónico a armónico, y un retardo temporal desfasa cada uno de forma distinta.
+globalThis.GEN = GEN;
+globalThis.S = S;
+globalThis.rad = (d) => (d * Math.PI) / 180;
+globalThis.liveEnergy = 0;
+eval(
+  entre("var ARM_CACHE={};", "function stokesGesto")
+    .replace("var ARM_CACHE", "globalThis.ARM_CACHE")
+    .replace("function pesosArmonicos", "globalThis.pesosArmonicos = function pesosArmonicos")
+    .replace("function stokesPreset", "globalThis.stokesPreset = function stokesPreset")
+);
+S.Ax = S.Ay = 0.82; S.delta = 90;
+const esperadoDop = { sine: 100, tri: 97.5, sq: 74.4, saw: 57.2, sinc: 35.5, pulse: 2.8 };
+const esperadoS3  = { sine: 1.000, tri: 0.975, sq: 0.744, saw: 0.559, sinc: 0.039, pulse: 0.028 };
+for (const w of Object.keys(esperadoDop)) {
+  GEN.wave = w;
+  const st = stokesPreset();
+  comprueba(`${w}: grado de polarización (%)`, st.dop * 100, esperadoDop[w], 0.6);
+  comprueba(`${w}: |s3|`, Math.abs(st.s3), esperadoS3[w], 0.01);
 }
-let st = stokesDe(1, 0, 0);
-comprueba("lineal horizontal → s1", st.s1, 1);
-st = stokesDe(0.78, 0.78, 0);
-comprueba("lineal a 45° → s2", st.s2, 1);
-st = stokesDe(0.82, 0.82, 90);
-comprueba("circular dextrógira → s3", st.s3, 1);
-st = stokesDe(0.82, 0.82, -90);
-comprueba("circular levógira → s3", st.s3, -1);
+// Y con una sinusoide debe reducirse a las fórmulas clásicas.
+GEN.wave = "sine"; S.Ax = 1; S.Ay = 0.6; S.delta = 40;
+{
+  const st = stokesPreset(), s0 = 1 + 0.36;
+  comprueba("sinusoide: s2 = 2·Ax·Ay·cos δ / s0", st.s2, (2 * 0.6 * Math.cos(rad(40))) / s0, 1e-9);
+  comprueba("sinusoide: s3 = 2·Ax·Ay·sin δ / s0", st.s3, (2 * 0.6 * Math.sin(rad(40))) / s0, 1e-9);
+  comprueba("sinusoide: totalmente polarizada", st.dop, 1, 1e-9);
+}
 
 /* ---------- 5. diagramas de antena ---------- */
 console.log("\nAntenas: directividad y ancho de haz");

@@ -1,108 +1,165 @@
-# Laboratorio de ondas electromagnéticas
+<div align="center">
 
-Herramienta interactiva en 3D para enseñar propagación, polarización y radiación
-de antenas. Una sola página, sin dependencias ni compilación: se abre haciendo
-doble clic en `index.html`.
+# 🌀 Laboratorio de ondas electromagnéticas
 
+**Una onda de radio, por dentro.** Propagación, polarización y radiación de antenas
+en 3D, en el navegador, sin instalar nada.
 
-## Qué hace
+![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-1f8a62?style=flat-square)
+![Un solo fichero](https://img.shields.io/badge/un_solo-fichero_HTML-2f6fd0?style=flat-square)
+![Comprobado](https://img.shields.io/badge/física-34_comprobaciones-8f5506?style=flat-square)
+![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)
 
-Dos vistas que comparten el mismo generador de señal:
+</div>
 
-- **Onda plana.** Una onda avanzando por el eje z con sus campos E y B. Permite
-  cambiar las dos componentes transversales y el desfase entre ellas, y ver cómo
-  la punta del campo eléctrico pasa de recorrer una recta a una circunferencia o
-  una elipse. Incluye la figura vista de frente y la esfera de Poincaré.
-- **Radiación 3D.** El campo lejano de una antena real: capas esféricas con el
-  signo y la amplitud que les toca, el diagrama de radiación, cortes del campo
-  por un plano y una sonda direccional con los vectores E y B.
+---
 
-El **generador** alimenta ambas vistas y admite seis formas de onda predefinidas
-o un trazo dibujado a mano con el ratón.
+> 📸 *Sustituye este bloque por una captura o un GIF de la aplicación en marcha.*
+> Con una de la vista de radiación y otra del generador manual basta.
 
-## Cómo usarlo
+---
 
+## ✨ Qué es
+
+Casi todos los applets de ondas electromagnéticas dibujan la misma sinusoide de
+siempre. Este hace tres cosas que no suelen verse juntas:
+
+| | |
+|---|---|
+| 🎛️ **Genera la onda tú** | Arrastra una bolita y tu gesto sale emitido y viaja. El campo en cualquier punto es lo que hizo la fuente hace `distancia/v` segundos: eso es toda la física que hay detrás de una onda. |
+| 📡 **No solo un rayo** | Una segunda vista muestra cómo esa misma onda sale al espacio desde una antena real, con capas esféricas, diagrama de radiación y sonda direccional. |
+| 🔬 **Los números son de verdad** | La polarización se calcula por matriz de coherencia armónico a armónico. Una onda cuadrada sale **74 % polarizada**, no «circular perfecta». |
+
+## 🚀 Empezar
+
+```bash
+git clone <este-repositorio>
+cd lab-ondas
+# y ya está: doble clic en index.html
 ```
-# no hace falta nada: doble clic en index.html
-# o, si se prefiere servirlo:
-python3 -m http.server 8000     # y abrir http://localhost:8000
-```
 
-Para publicarlo basta con subir `index.html` a cualquier alojamiento estático
-(GitHub Pages, Netlify, un directorio de Apache). No hay proceso de compilación.
+Sin build, sin `npm install`, sin servidor. Para publicarlo, sube `index.html` a
+GitHub Pages o a cualquier directorio estático.
 
-La única petición externa son las tipografías de Google Fonts. Si se necesita
-funcionamiento sin red, sustituir el `<link>` de fuentes por copias locales; el
-resto ya es autónomo y funciona sin conexión.
+## 🧭 Un recorrido de dos minutos
 
-## Verificación
+1. **Onda plana.** Sube el desfase δ hasta 90° con amplitudes iguales y mira cómo
+   la recta se abre hasta convertirse en un círculo.
+2. Pulsa **pausa** y gira la escena: una onda *dextrógira* en el tiempo dibuja una
+   hélice *levógira* en el espacio. Son dos cosas distintas y se confunden mucho.
+3. Cambia la forma de onda a **cuadrada**. El panel deja de decir «circular» y pasa
+   a «parcialmente polarizada, 74 %», con el desglose por armónicos.
+4. **Generador manual.** Arrastra la bolita y observa salir tu trazo.
+5. **Radiación 3D.** Elige un dipolo λ/2 y fíjate en el nulo justo sobre su eje:
+   una antena no radia hacia donde «apunta».
+
+## 🎓 La parte que más nos gusta
+
+Una onda cuadrada no es *una* onda: es la suma de muchas sinusoides. Y un retardo
+en el tiempo desfasa al armónico `n` en `n·ω·τ`, no en `ω·τ`. Con un cuarto de
+periodo, el fundamental gira hacia un lado, el tercer armónico hacia el contrario
+y el quinto otra vez al primero.
+
+Resultado: **la señal deja de estar totalmente polarizada**. No porque haya nada
+desordenado —cada armónico por separado está polarizado al 100 %— sino porque no
+se ponen de acuerdo entre ellos.
+
+| Forma de onda | Grado de polarización |
+|---|---|
+| Sinusoidal | 100 % |
+| Triangular | 97,5 % |
+| Cuadrada | 74,4 % |
+| Diente de sierra | 57,2 % |
+| Monociclo | 2,8 % |
+
+En la esfera de Poincaré se ve de un vistazo: los estados totalmente polarizados
+están en la superficie y los parciales **se hunden hacia el centro**.
+
+## ✅ Verificación
 
 La física no se comprueba a ojo. `tools/verify.mjs` lee las funciones
-directamente de `index.html` y valida los resultados contra valores de libro:
+directamente de `index.html` y las valida contra valores de libro:
 
-```
+```bash
 node tools/verify.mjs
 ```
 
-Comprueba, entre otras cosas:
+<details>
+<summary><b>Las 34 comprobaciones</b></summary>
 
-- que las seis formas de onda tienen valor medio cero (un campo con componente
-  continua no se radia) y pico normalizado;
-- que el campo propagado coincide con `cos(ωt − kz)` y se repite cada λ;
-- que δ = +90° produce giro dextrógiro en el convenio IEEE;
-- que los parámetros de Stokes dan s₁ = 1 en lineal horizontal, s₂ = 1 a 45° y
-  s₃ = ±1 en circular;
-- que las directividades y anchos de haz coinciden con los de Balanis: 1,76 dBi
-  el dipolo corto, 2,15 el λ/2 con 78°, 3,82 el de 1λ, 5,15 el monopolo con 39°;
-- que E, B y la dirección de propagación son ortogonales y el vector de Poynting
-  apunta hacia fuera en toda la esfera;
-- que el muestreo espacial de las capas queda por encima del límite de Nyquist.
+<br>
 
-Si alguien toca una fórmula y rompe algo, el script sale con código 1.
+- Las seis formas de onda tienen **valor medio cero** (un campo con componente
+  continua no se radia) y pico normalizado.
+- El campo propagado coincide con `cos(ωt − kz)` y se repite cada λ.
+- `δ = +90°` produce giro **dextrógiro** en el convenio IEEE.
+- Stokes y grado de polarización coinciden con un cálculo independiente por
+  análisis armónico, y con una sinusoide se reducen exactamente a las fórmulas
+  clásicas `s₂ = 2·Ax·Ay·cos δ / s₀` y `s₃ = 2·Ax·Ay·sin δ / s₀`.
+- Directividades y anchos de haz contra Balanis: **1,76 dBi** el dipolo corto,
+  **2,15** el λ/2 con 78°, **3,82** el de 1λ, **5,15** el monopolo con 39°.
+- `E ⊥ B ⊥ k` y el vector de Poynting apunta hacia fuera en toda la esfera.
+- El muestreo espacial queda por encima del límite de Nyquist.
 
-## Convenios adoptados
+</details>
 
-Los convenios de polarización se contradicen entre disciplinas, así que conviene
-tenerlos por escrito. El panel de créditos de la propia aplicación los detalla,
-en resumen:
+## 📐 Convenios adoptados
+
+Los convenios de polarización se contradicen entre disciplinas, así que están por
+escrito. El panel de créditos de la aplicación los detalla.
 
 | Asunto | Elección |
-| --- | --- |
+|---|---|
 | Campo eléctrico | `Ex = Ax·cos(kz − ωt)`, `Ey = Ay·cos(kz − ωt + δ)` |
 | Campo magnético | `B = (1/c)·ẑ × E`, dibujado multiplicado por c |
-| Sentido de giro | IEEE: pulgar derecho hacia +z, los dedos siguen el giro |
+| Sentido de giro | **IEEE**: pulgar derecho hacia +z, los dedos siguen el giro |
 | Desfase δ | retardo temporal de la componente y, no una fase |
 | Esfera de Poincaré | polo norte = dextrógiro IEEE (uso de la IAU) |
 | Unidades | normalizadas: λ = 2 u, periodo 3 s, v = 2/3 u/s |
 
-Dos avisos que merecen recordarse: lo que aquí se llama dextrógiro es levógiro
-en el convenio clásico de la óptica, y la norma IEEE 145 dibuja la esfera de
-Poincaré con el eje vertical invertido respecto a esta.
+> ⚠️ Dos avisos que conviene recordar: lo que aquí se llama **dextrógiro** es
+> levógiro en el convenio clásico de la óptica, y la norma **IEEE 145** dibuja la
+> esfera de Poincaré con el eje vertical invertido respecto a esta.
 
-## Límites del modelo
+## 🚧 Límites del modelo
 
 - Onda plana monocromática en el vacío, sin dispersión ni atenuación.
-- En la vista de radiación, **solo campo lejano**: no hay campo cercano, ni
-  acoplo, ni impedancia, ni suelo real. La circunferencia interior marca dónde
-  empieza lo representado.
-- La velocidad de propagación es una escala de dibujo, no un valor físico, y en
-  la vista de radiación se ajusta según la fuente para no caer por debajo del
-  límite de muestreo.
-- Stokes y la esfera de Poincaré están definidos para ondas monocromáticas. Con
-  una triangular, un pulso o un trazo a mano, lo que se muestra es el estado
-  medio equivalente, no una descripción completa.
+- En la vista de radiación, **solo campo lejano**: sin campo cercano, acoplo,
+  impedancia ni suelo real.
+- Los **diagramas de antena son monocromáticos**. Cada armónico de una señal no
+  sinusoidal vería una antena distinta —un «dipolo λ/2» es un dipolo de 1,5 λ para
+  su tercer armónico— y la interfaz lo avisa con cifras concretas. Sumar los
+  diagramas de todos los armónicos queda como mejora pendiente.
+- La velocidad de propagación es una **escala de dibujo**, no un valor físico.
 
-## Estructura
+## 🗺️ Mejoras pendientes
+
+- [ ] Diagrama de antena de banda ancha, sumando armónicos
+- [ ] Plano de tierra real con el rayo reflejado
+- [ ] Array orientable por desfase, para ver el *beamforming*
+- [ ] Pérdida por desajuste de polarización entre transmisor y receptor
+
+## 📦 Estructura
 
 ```
 index.html          la aplicación entera
 tools/verify.mjs    comprobaciones de la física
-LICENSE.md          licencia
+LICENSE.md          CC BY-SA 4.0
 ```
 
 Que sea un único fichero es deliberado: se puede pasar por correo, llevar en un
 pendrive y abrir en el ordenador del aula sin instalar nada.
 
-## Licencia
+## 📚 Fuentes
 
-CC BY-SA 4.0. Ver `LICENSE.md`.
+IEEE Std 145 · Balanis, *Antenna Theory* y *Advanced Engineering Electromagnetics* ·
+Ellingson, *Electromagnetics* (LibreTexts, en abierto) · Born & Wolf, *Principles of
+Optics* · Robishaw & Heiles, [arXiv:1806.07391](https://arxiv.org/abs/1806.07391)
+sobre convenios en polarimetría.
+
+---
+
+<div align="center">
+<sub>Hecho para enseñar. Si encuentras un error de física o de convenio, abre un issue:
+la parte de convenios es donde más fácil es colarse.</sub>
+</div>
