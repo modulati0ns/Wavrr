@@ -13,7 +13,7 @@ en 3D, en el navegador, sin instalar nada.
 ![Comprobado](https://img.shields.io/badge/física-46_comprobaciones-8f5506?style=flat-square)
 ![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)
 
-**[▶ Abrir la demo](https://modulati0ns.github.io/Wavrr/)**
+**[▶ Abrir la demo](https://modulati0ns.github.io/Wavrr/)** · [wavrr.modulati0ns.es](https://wavrr.modulati0ns.es)
 
 </div>
 
