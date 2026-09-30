@@ -13,7 +13,7 @@ en 3D, en el navegador, sin instalar nada.
 ![Comprobado](https://img.shields.io/badge/física-46_comprobaciones-8f5506?style=flat-square)
 ![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)
 
-**[▶ Abrir la demo](https://modulati0ns.github.io/Wavrr/)** · [wavrr.modulati0ns.es](https://wavrr.modulati0ns.es)
+**[▶ Abrir el laboratorio](https://wavrr.modulati0ns.es)**
 
 </div>
 
@@ -37,15 +37,11 @@ siempre. Este hace tres cosas que no suelen verse juntas:
 
 ## 🚀 Empezar
 
-```bash
-git clone https://github.com/modulati0ns/Wavrr.git
-cd Wavrr
-# y ya está: doble clic en index.html
-```
+Abre **[wavrr.modulati0ns.es](https://wavrr.modulati0ns.es)** en el navegador.
+No hay nada que instalar.
 
-Sin build, sin `npm install`, sin servidor. Para publicarlo tienes las
-instrucciones en [`deploy/`](deploy/README.md): GitHub Pages sin configurar nada,
-o un contenedor mínimo detrás de Nginx Proxy Manager.
+Sin build, sin `npm install`. Cómo se sirve está en [`deploy/`](deploy/README.md):
+un contenedor mínimo detrás de Nginx Proxy Manager.
 
 ## 🧭 Un recorrido de dos minutos
 
@@ -150,7 +146,7 @@ escrito. El panel de créditos de la aplicación los detalla.
 ```
 index.html                    la aplicación entera
 tools/verify.mjs              comprobaciones de la física
-deploy/                       GitHub Pages y NAS con Nginx Proxy Manager
+deploy/                       publicación en el NAS con Nginx Proxy Manager
 .github/workflows/            la verificación se ejecuta en cada push
 LICENSE.md                    CC BY-SA 4.0
 ```

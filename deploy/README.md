@@ -1,54 +1,8 @@
 # Publicación
 
-Dos destinos independientes: GitHub (código y demo pública) y el NAS (copia
-propia detrás de Nginx Proxy Manager). No hace falta hacer los dos.
+Wavrr se sirve únicamente desde el NAS, detrás de Nginx Proxy Manager.
 
----
-
-## 1. Subir a GitHub
-
-Crea primero un repositorio **vacío** en github.com, sin README ni licencia, para
-que no choque con el historial que ya trae esta carpeta.
-
-```bash
-cd Wavrr
-
-# comprueba que el historial está donde esperas
-git log --oneline
-
-git remote add origin git@github.com:modulati0ns/Wavrr.git
-git push -u origin main
-```
-
-Si usas HTTPS en vez de clave SSH, el remoto sería
-`https://github.com/modulati0ns/Wavrr.git` y te pedirá usuario y un **token
-personal** (Settings → Developer settings → Personal access tokens), no tu
-contraseña.
-
-### Publicar la demo con GitHub Pages
-
-Como todo es estático y `index.html` está en la raíz, no hace falta ninguna
-configuración:
-
-1. Repositorio → **Settings** → **Pages**
-2. Source: **Deploy from a branch**
-3. Branch: `main`, carpeta `/ (root)` → **Save**
-
-En un par de minutos estará en `https://modulati0ns.github.io/Wavrr/`.
-
-### Rematar el README
-
-Con la URL ya en la mano, en `README.md`:
-
-- Sustituye el bloque de la captura por una imagen real. Lo más vendedor es un
-  GIF corto del generador manual: dibujas y el trazo sale viajando.
-
-Para la captura, crea `docs/` en el repositorio, sube ahí las imágenes y
-enlázalas como `![Vista de radiación](docs/radiacion.png)`.
-
----
-
-## 2. Publicar en el NAS con Nginx Proxy Manager
+## Publicar en el NAS con Nginx Proxy Manager
 
 ### Qué hace falta saber de antemano
 
