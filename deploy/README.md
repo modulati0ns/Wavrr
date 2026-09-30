@@ -11,18 +11,17 @@ Crea primero un repositorio **vacío** en github.com, sin README ni licencia, pa
 que no choque con el historial que ya trae esta carpeta.
 
 ```bash
-cd lab-ondas
+cd Wavrr
 
 # comprueba que el historial está donde esperas
 git log --oneline
 
-# sustituye USUARIO por tu cuenta
-git remote add origin git@github.com:USUARIO/lab-ondas.git
+git remote add origin git@github.com:modulati0ns/Wavrr.git
 git push -u origin main
 ```
 
 Si usas HTTPS en vez de clave SSH, el remoto sería
-`https://github.com/USUARIO/lab-ondas.git` y te pedirá usuario y un **token
+`https://github.com/modulati0ns/Wavrr.git` y te pedirá usuario y un **token
 personal** (Settings → Developer settings → Personal access tokens), no tu
 contraseña.
 
@@ -35,14 +34,12 @@ configuración:
 2. Source: **Deploy from a branch**
 3. Branch: `main`, carpeta `/ (root)` → **Save**
 
-En un par de minutos estará en `https://USUARIO.github.io/lab-ondas/`.
+En un par de minutos estará en `https://modulati0ns.github.io/Wavrr/`.
 
 ### Rematar el README
 
 Con la URL ya en la mano, en `README.md`:
 
-- Cambia `USUARIO` en la insignia de verificación.
-- Añade el enlace a la demo.
 - Sustituye el bloque de la captura por una imagen real. Lo más vendedor es un
   GIF corto del generador manual: dibujas y el trazo sale viajando.
 
@@ -91,6 +88,11 @@ docker exec lab-ondas wget -qO- localhost | head -5
 
 En la pestaña **SSL**: certificado nuevo de Let's Encrypt, y marca *Force SSL* y
 *HTTP/2 Support*.
+
+Si `docker network ls` no muestra una red propia de NPM y este está en la red
+`bridge` por defecto (típico en Unraid), no puedes reenviar por nombre de
+contenedor. Publica un puerto en el compose (`ports: - "8089:80"`) y en NPM usa
+como Forward Hostname la IP del NAS y como puerto ese `8089`.
 
 Si el dominio solo resuelve en tu red, necesitarás el desafío **DNS-01** para el
 certificado, porque Let's Encrypt no podrá alcanzarte por HTTP.

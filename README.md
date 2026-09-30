@@ -1,15 +1,19 @@
 <div align="center">
 
-# 🌀 Laboratorio de ondas electromagnéticas
+# 🌀 Wavrr
+
+### Laboratorio de ondas electromagnéticas
 
 **Una onda de radio, por dentro.** Propagación, polarización y radiación de antenas
 en 3D, en el navegador, sin instalar nada.
 
-[![Verificación de la física](https://github.com/USUARIO/lab-ondas/actions/workflows/verificacion.yml/badge.svg)](https://github.com/USUARIO/lab-ondas/actions/workflows/verificacion.yml)
+[![Verificación de la física](https://github.com/modulati0ns/Wavrr/actions/workflows/verificacion.yml/badge.svg)](https://github.com/modulati0ns/Wavrr/actions/workflows/verificacion.yml)
 ![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-1f8a62?style=flat-square)
 ![Un solo fichero](https://img.shields.io/badge/un_solo-fichero_HTML-2f6fd0?style=flat-square)
-![Comprobado](https://img.shields.io/badge/física-34_comprobaciones-8f5506?style=flat-square)
+![Comprobado](https://img.shields.io/badge/física-46_comprobaciones-8f5506?style=flat-square)
 ![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)
+
+**[▶ Abrir la demo](https://modulati0ns.github.io/Wavrr/)**
 
 </div>
 
@@ -34,8 +38,8 @@ siempre. Este hace tres cosas que no suelen verse juntas:
 ## 🚀 Empezar
 
 ```bash
-git clone https://github.com/USUARIO/lab-ondas.git
-cd lab-ondas
+git clone https://github.com/modulati0ns/Wavrr.git
+cd Wavrr
 # y ya está: doble clic en index.html
 ```
 
@@ -87,7 +91,7 @@ node tools/verify.mjs
 ```
 
 <details>
-<summary><b>Las 34 comprobaciones</b></summary>
+<summary><b>Las 46 comprobaciones</b></summary>
 
 <br>
 

@@ -15,7 +15,8 @@ services:
     restart: unless-stopped
     volumes:
       # Ajusta la ruta de la izquierda a tu NAS.
-      # Synology suele ser /volume1/docker/... y QNAP /share/Container/...
+      # Synology suele ser /volume1/docker/..., QNAP /share/Container/...
+      # y Unraid /mnt/user/appdata/...
       - /volume1/docker/lab-ondas:/usr/share/nginx/html:ro
     networks:
       - npm
@@ -28,5 +29,8 @@ networks:
   npm:
     # La red que ya usa tu Nginx Proxy Manager. Comprueba su nombre con:
     #   docker network ls
+    # Si NPM está en la red «bridge» por defecto, ahí no se resuelven nombres de
+    # contenedor: quita este bloque y «networks:» de arriba, publica un puerto
+    # (ver «ports») y en NPM reenvía a la IP del NAS con ese puerto.
     external: true
     name: npm_default
