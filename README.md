@@ -19,11 +19,6 @@ en 3D, en el navegador, sin instalar nada.
 
 ---
 
-> 📸 *Sustituye este bloque por una captura o un GIF de la aplicación en marcha.*
-> Con una de la vista de radiación y otra del generador manual basta.
-
----
-
 ## ✨ Qué es
 
 Casi todos los applets de ondas electromagnéticas dibujan la misma sinusoide de
