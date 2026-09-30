@@ -11,7 +11,7 @@ en 3D, en el navegador, sin instalar nada.
 ![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-1f8a62?style=flat-square)
 ![Un solo fichero](https://img.shields.io/badge/un_solo-fichero_HTML-2f6fd0?style=flat-square)
 ![Comprobado](https://img.shields.io/badge/física-46_comprobaciones-8f5506?style=flat-square)
-![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)
+[![Licencia](https://img.shields.io/badge/licencia-CC_BY--SA_4.0-6b6254?style=flat-square)](LICENSE.md)
 
 **[▶ Abrir el laboratorio](https://wavrr.modulati0ns.es)**
 
@@ -33,15 +33,16 @@ siempre. Este hace tres cosas que no suelen verse juntas:
 |---|---|
 | 🎛️ **Genera la onda tú** | Arrastra una bolita y tu gesto sale emitido y viaja. El campo en cualquier punto es lo que hizo la fuente hace `distancia/v` segundos: eso es toda la física que hay detrás de una onda. |
 | 📡 **No solo un rayo** | Una segunda vista muestra cómo esa misma onda sale al espacio desde una antena real, con capas esféricas, diagrama de radiación y sonda direccional. |
-| 🔬 **Los números son de verdad** | La polarización se calcula por matriz de coherencia armónico a armónico. Una onda cuadrada sale **74 % polarizada**, no «circular perfecta». |
+| 🔬 **Los números son de verdad** | La polarización se calcula por matriz de coherencia armónico a armónico. Una onda cuadrada sale **75 % polarizada**, no «circular perfecta». |
 
 ## 🚀 Empezar
 
 Abre **[wavrr.modulati0ns.es](https://wavrr.modulati0ns.es)** en el navegador.
 No hay nada que instalar.
 
-Sin build, sin `npm install`. Cómo se sirve está en [`deploy/`](deploy/README.md):
-un contenedor mínimo detrás de Nginx Proxy Manager.
+No hay compilación: es un HTML estático con sus tipografías al lado. Cómo se
+sirve está en [`deploy/`](deploy/README.md): un contenedor mínimo detrás de
+Nginx Proxy Manager.
 
 ## 🧭 Un recorrido de dos minutos
 
@@ -50,8 +51,8 @@ un contenedor mínimo detrás de Nginx Proxy Manager.
 2. Pulsa **pausa** y gira la escena: una onda *dextrógira* en el tiempo dibuja una
    hélice *levógira* en el espacio. Son dos cosas distintas y se confunden mucho.
 3. Cambia la forma de onda a **cuadrada**. El panel deja de decir «circular» y pasa
-   a «parcialmente polarizada, 74 %», con el desglose por armónicos.
-4. **Generador manual.** Arrastra la bolita y observa salir tu trazo.
+   a «parcialmente polarizada, 75 %», con el desglose por armónicos.
+4. **Generador manual.** Pulsa **Manual**, arrastra la bolita y observa salir tu trazo.
 5. **Radiación 3D.** Elige un dipolo λ/2 y fíjate en el nulo justo sobre su eje:
    una antena no radia hacia donde «apunta».
 
@@ -70,17 +71,21 @@ se ponen de acuerdo entre ellos.
 |---|---|
 | Sinusoidal | 100 % |
 | Triangular | 97,5 % |
-| Cuadrada | 74,4 % |
-| Diente de sierra | 57,2 % |
+| Cuadrada | 74,6 % |
+| Diente de sierra | 57,4 % |
+| Sinc | 35,5 % |
 | Monociclo | 2,8 % |
+
+<sub>Valores que calcula la aplicación con δ = 90° y amplitudes iguales.</sub>
 
 En la esfera de Poincaré se ve de un vistazo: los estados totalmente polarizados
 están en la superficie y los parciales **se hunden hacia el centro**.
 
 ## ✅ Verificación
 
-La física no se comprueba a ojo. `tools/verify.mjs` lee las funciones
-directamente de `index.html` y las valida contra valores de libro:
+La física no se comprueba a ojo. `tools/verify.mjs` lee directamente de
+`index.html` las formas de onda, el cálculo de polarización y los diagramas de
+antena, y los valida contra valores de libro:
 
 ```bash
 node tools/verify.mjs
@@ -145,6 +150,7 @@ escrito. El panel de créditos de la aplicación los detalla.
 
 ```
 index.html                    la aplicación entera
+fonts/                        Archivo y Chivo Mono (SIL OFL), servidas en local
 tools/verify.mjs              comprobaciones de la física
 deploy/                       publicación en el NAS con Nginx Proxy Manager
 .github/workflows/            la verificación se ejecuta en cada push
@@ -152,7 +158,8 @@ LICENSE.md                    CC BY-SA 4.0
 ```
 
 Que sea un único fichero es deliberado: se puede pasar por correo, llevar en un
-pendrive y abrir en el ordenador del aula sin instalar nada.
+pendrive y abrir en el ordenador del aula sin instalar nada. Sin la carpeta
+`fonts/` funciona igual, solo que con las tipografías del sistema.
 
 ## 📚 Fuentes
 

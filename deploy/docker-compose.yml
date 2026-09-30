@@ -1,36 +1,34 @@
-# Publicación en un NAS detrás de Nginx Proxy Manager.
+# Wavrr servido por un nginx mínimo, detrás de Nginx Proxy Manager.
 #
-# La aplicación es un único fichero estático: no hay backend, ni base de datos,
-# ni variables de entorno. Basta con un nginx mínimo que lo sirva, y que NPM
-# haga de proxy delante para poner el dominio y el certificado.
+# La aplicación es estática: index.html y la carpeta fonts/. No hay backend, ni
+# base de datos, ni variables de entorno. NPM se pone delante para el dominio,
+# el certificado y las cabeceras de seguridad (ver deploy/README.md).
 #
-#   1. Copia index.html a la ruta del volumen de abajo
+#   1. Copia index.html y fonts/ a la ruta del volumen de abajo
 #   2. docker compose up -d
-#   3. En NPM: Proxy Host → reenviar a  lab-ondas : 80
+#   3. En NPM: Proxy Host → reenviar a  IP-del-NAS : 8089
 #
-services:
-  lab-ondas:
-    image: nginx:alpine
-    container_name: lab-ondas
-    restart: unless-stopped
-    volumes:
-      # Ajusta la ruta de la izquierda a tu NAS.
-      # Synology suele ser /volume1/docker/..., QNAP /share/Container/...
-      # y Unraid /mnt/user/appdata/...
-      - /volume1/docker/lab-ondas:/usr/share/nginx/html:ro
-    networks:
-      - npm
-    # Sin "ports": no hace falta exponer nada al host, NPM llega por la red interna.
-    # Si prefieres probarlo suelto antes de enchufar NPM, descomenta:
-    # ports:
-    #   - "8088:80"
+name: wavrr
 
-networks:
-  npm:
-    # La red que ya usa tu Nginx Proxy Manager. Comprueba su nombre con:
-    #   docker network ls
-    # Si NPM está en la red «bridge» por defecto, ahí no se resuelven nombres de
-    # contenedor: quita este bloque y «networks:» de arriba, publica un puerto
-    # (ver «ports») y en NPM reenvía a la IP del NAS con ese puerto.
-    external: true
-    name: npm_default
+services:
+  wavrr:
+    image: nginx:alpine
+    container_name: wavrr
+    restart: unless-stopped
+    ports:
+      - "8089:80"
+    volumes:
+      # Ruta de Unraid. En Synology suele ser /volume1/docker/wavrr y en QNAP
+      # /share/Container/wavrr.
+      - /mnt/user/appdata/wavrr:/usr/share/nginx/html:ro
+
+# Variante: si tu NPM tiene una red propia (docker network ls), puedes quitar
+# «ports» y conectar el contenedor a esa red; entonces en NPM se reenvía a
+# wavrr : 80 por nombre. En la red «bridge» por defecto eso no funciona, porque
+# ahí Docker no resuelve nombres de contenedor.
+#
+#     networks: [npm]          # dentro de services.wavrr
+#   networks:
+#     npm:
+#       external: true
+#       name: <nombre-de-la-red-de-npm>

@@ -3,12 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Polarización de una onda electromagnética · laboratorio interactivo</title>
+<title>Wavrr · Laboratorio de ondas electromagnéticas</title>
 <meta name="description" content="Laboratorio interactivo en 3D para entender el campo eléctrico, el campo magnético y la polarización de una onda electromagnética plana.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=Chivo+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Wavrr · Laboratorio de ondas electromagnéticas">
+<meta property="og:description" content="Propagación, polarización y radiación de antenas en 3D, en el navegador y sin instalar nada.">
+<meta property="og:url" content="https://wavrr.modulati0ns.es/">
+<meta property="og:locale" content="es_ES">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314161c'/%3E%3Cpath d='M4 16c3-9 6-9 8 0s5 9 8 0 5-9 8 0' fill='none' stroke='%23f2a01e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <style>
+  /* Tipografías servidas desde el propio sitio (SIL OFL, ver fonts/) */
+  @font-face{ font-family:"Archivo"; font-style:normal; font-weight:400 700; font-display:swap; src:url("fonts/archivo-latin-ext.woff2") format("woff2"); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face{ font-family:"Archivo"; font-style:normal; font-weight:400 700; font-display:swap; src:url("fonts/archivo-latin.woff2") format("woff2"); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face{ font-family:"Chivo Mono"; font-style:normal; font-weight:400 600; font-display:swap; src:url("fonts/chivo-mono-latin-ext.woff2") format("woff2"); unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face{ font-family:"Chivo Mono"; font-style:normal; font-weight:400 600; font-display:swap; src:url("fonts/chivo-mono-latin.woff2") format("woff2"); unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  [hidden]{ display:none !important; }
   /* ============================================================
      Consola de laboratorio. Todo el mobiliario es una sola pieza
      moldeada: los controles sobresalen del panel y se hunden al
@@ -483,7 +493,7 @@
           </div>
         </div>
       </div>
-      <button class="btn" id="pngBtn" type="button" hidden>
+      <button class="btn" id="pngBtn" type="button">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
         Imagen
       </button>
@@ -801,7 +811,7 @@
           <p>Si sueltas el ratón, la fuente se apaga suavemente y el pulso que has creado se marcha por el eje z; pausando con la barra espaciadora puedes girarlo y mirarlo con calma. El estado que aparece en el panel está estimado sobre los últimos 3 s de gesto, porque la polarización no es una foto de un instante sino un patrón sostenido en el tiempo.</p>
 
           <h3>La radiación en el espacio</h3>
-          <p>El tercer modo abandona la onda plana y dibuja el campo lejano de una antena real. Hay cuatro capas y conviene saber qué es cada una, porque representan cosas distintas.</p>
+          <p>La vista de radiación abandona la onda plana y dibuja el campo lejano de una antena real. Hay cuatro capas y conviene saber qué es cada una, porque representan cosas distintas.</p>
           <ul>
             <li><b>Campo en 3D.</b> La capa principal: capas esféricas concéntricas, cada una con el signo y la amplitud que le tocan en ese instante. Como el campo de estas antenas solo depende de la distancia y del ángulo respecto al eje, estas capas son el campo entero, no una muestra suya. El ámbar y el verde azulado son los dos semiciclos de E.</li>
             <li><b>Cortes.</b> Si prefieres verlo plano, cortan el espacio por un plano y colorean celda a celda el valor instantáneo del campo. Es la misma información que la capa anterior, pero sin superposición y por tanto más fácil de medir a ojo.</li>
@@ -887,7 +897,7 @@
   </ul>
 
   <h3>Autoría</h3>
-  <p>Desarrollado por modulati0ns con la asistencia de Claude (Anthropic), 2026. Libre para usar, proyectar y adaptar con fines docentes. Si detectas un error de física o de convenio, se agradece el aviso: la parte de convenios es donde más fácil es colarse.</p>
+  <p>Desarrollado por modulati0ns con la asistencia de Claude (Anthropic), 2026. Publicado bajo licencia CC BY-SA 4.0: libre para usar, proyectar y adaptar, citando la autoría y compartiendo en los mismos términos. Si detectas un error de física o de convenio, se agradece el aviso: la parte de convenios es donde más fácil es colarse.</p>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -1449,13 +1459,17 @@ function encodeState(){
   return "#ax="+S.Ax.toFixed(2)+"&ay="+S.Ay.toFixed(2)+"&d="+Math.round(S.delta)+"&n="+S.waves
     +"&m="+S.mode+"&s="+GEN.src+(GEN.src==="preset"?"&w="+GEN.wave:"")+(S.mode==="space"?"&a="+S.ant:"");
 }
-var lastHash="";
+var lastHash="", hashRetry=null;
 function updateShareUrl(){
   var h=encodeState();
   if(h===lastHash) return;
   $("shareUrl").value = baseUrl + h;
   var now = Date.now();
-  if(paramAnim || now-lastHashWrite < 700) return;
+  if(paramAnim || now-lastHashWrite < 700){
+    // no se pierde el último cambio: se reintenta cuando acabe la animación o la espera
+    clearTimeout(hashRetry); hashRetry=setTimeout(updateShareUrl, 750);
+    return;
+  }
   lastHash = h;
   lastHashWrite = now;
   try { history.replaceState(null,"",h); } catch(e){}
@@ -1464,9 +1478,10 @@ function readHash(){
   var h=location.hash.replace(/^#/,""); if(!h) return;
   var parts=h.split("&"), i, kv, o={};
   for(i=0;i<parts.length;i++){ kv=parts[i].split("="); o[kv[0]]= (kv[0]==="m"||kv[0]==="a"||kv[0]==="s"||kv[0]==="w") ? kv[1] : parseFloat(kv[1]); }
-  if(o.m==="space"){ S.mode="space"; if(typeof o.a==="string" && ANT[o.a]) S.ant=o.a; }
+  var own=Object.prototype.hasOwnProperty;
+  if(o.m==="space"){ S.mode="space"; if(typeof o.a==="string" && own.call(ANT,o.a)) S.ant=o.a; }
   if(o.s==="preset"||o.s==="manual") GEN.src=o.s;
-  if(typeof o.w==="string") GEN.wave=o.w;
+  if(typeof o.w==="string" && own.call(WAVE_N,o.w)) GEN.wave=o.w;
   if(isFinite(o.ax)) S.Ax=clamp(o.ax,0,1);
   if(isFinite(o.ay)) S.Ay=clamp(o.ay,0,1);
   if(isFinite(o.d))  S.delta=clamp(o.d,-180,180);
@@ -2224,7 +2239,6 @@ if(window.claude && typeof window.claude.use==="function"){
   }).catch(function(){});
 }
 $("pngBtn").addEventListener("click",function(){
-  if(!downloads) return;
   var pad=Math.round(16*DPR), footer=Math.round(74*DPR), miniSize=Math.round(150*DPR);
   var out=document.createElement("canvas");
   out.width=cv.width; out.height=cv.height+footer;
@@ -2243,7 +2257,17 @@ $("pngBtn").addEventListener("click",function(){
   o.fillText(foot, pad, cv.height+Math.round(40*DPR));
   out.toBlob(function(blob){
     if(!blob){ toast("No se pudo generar la imagen"); return; }
-    downloads.save({ filename:"polarizacion-"+r.tipo.toLowerCase()+".png", data:blob })
+    var nombre="polarizacion-"+r.tipo.toLowerCase()+".png";
+    if(!downloads){
+      // navegador normal: descarga directa del PNG
+      var a=document.createElement("a");
+      a.href=URL.createObjectURL(blob); a.download=nombre;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+      toast("Imagen guardada");
+      return;
+    }
+    downloads.save({ filename:nombre, data:blob })
       .then(function(){ toast("Imagen guardada"); })
       .catch(function(err){
         var c=err&&err.code;
@@ -2392,7 +2416,7 @@ function updateChrome(){
               "° en vez de al horizonte. El dipolo corto es el único de la lista inmune a esto, porque su sin θ no depende de la frecuencia.";
       }
     }
-    $("vText").textContent=expl+" El color de las capas son los dos semiciclos del campo eléctrico, y se apagan donde la antena no radia."+aviso;
+    $("vText").textContent=expl+" Los colores de las capas son los dos semiciclos del campo eléctrico, y se apagan donde la antena no radia."+aviso;
     $("vHarm").hidden=true;
     $("p1Cap").textContent="Corte vertical, con la antena de pie en el centro. La forma de ocho es la firma del dipolo: dos lóbulos y un cero arriba y abajo.";
     $("p2Cap").textContent="Corte horizontal, lo que mediría alguien dando una vuelta alrededor. Que salga un círculo es justo lo que significa «omnidireccional».";
@@ -2497,6 +2521,7 @@ function frame(ts){
 
 /* ===================== arranque ===================== */
 readHash();
+antCalc();   // las cifras de la antena tienen que existir antes de pintar el modo 3D
 resize(); setSliderUI(); syncPlay();
 setWave(GEN.wave); setSrc(GEN.src); setMode(S.mode); updateChrome();
 if(reduced){ $("nudge").textContent="Arrastra para girar · la animación está pausada"; }

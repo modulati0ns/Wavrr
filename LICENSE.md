@@ -18,10 +18,8 @@ Bajo las siguientes condiciones:
 - **CompartirIgual**: si remezclas o transformas el material, debes distribuir
   tu contribución bajo la misma licencia que el original.
 
-Texto completo: https://creativecommons.org/licenses/by-sa/4.0/deed.es
+Resumen: https://creativecommons.org/licenses/by-sa/4.0/deed.es
+Texto legal: https://creativecommons.org/licenses/by-sa/4.0/legalcode.es
 
----
-
-Nota: esta licencia es una elección de partida, pensada para uso docente.
-Si prefieres otra (MIT para el código, CC BY, dominio público…), basta con
-sustituir este fichero y la línea correspondiente del README.
+Las tipografías de `fonts/` (Archivo y Chivo Mono) no forman parte de esta obra:
+se distribuyen bajo la SIL Open Font License 1.1, incluida junto a ellas.
