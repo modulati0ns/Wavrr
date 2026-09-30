@@ -1,0 +1,32 @@
+# Publicación en un NAS detrás de Nginx Proxy Manager.
+#
+# La aplicación es un único fichero estático: no hay backend, ni base de datos,
+# ni variables de entorno. Basta con un nginx mínimo que lo sirva, y que NPM
+# haga de proxy delante para poner el dominio y el certificado.
+#
+#   1. Copia index.html a la ruta del volumen de abajo
+#   2. docker compose up -d
+#   3. En NPM: Proxy Host → reenviar a  lab-ondas : 80
+#
+services:
+  lab-ondas:
+    image: nginx:alpine
+    container_name: lab-ondas
+    restart: unless-stopped
+    volumes:
+      # Ajusta la ruta de la izquierda a tu NAS.
+      # Synology suele ser /volume1/docker/... y QNAP /share/Container/...
+      - /volume1/docker/lab-ondas:/usr/share/nginx/html:ro
+    networks:
+      - npm
+    # Sin "ports": no hace falta exponer nada al host, NPM llega por la red interna.
+    # Si prefieres probarlo suelto antes de enchufar NPM, descomenta:
+    # ports:
+    #   - "8088:80"
+
+networks:
+  npm:
+    # La red que ya usa tu Nginx Proxy Manager. Comprueba su nombre con:
+    #   docker network ls
+    external: true
+    name: npm_default

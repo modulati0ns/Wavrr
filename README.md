@@ -5,6 +5,7 @@
 **Una onda de radio, por dentro.** Propagación, polarización y radiación de antenas
 en 3D, en el navegador, sin instalar nada.
 
+[![Verificación de la física](https://github.com/USUARIO/lab-ondas/actions/workflows/verificacion.yml/badge.svg)](https://github.com/USUARIO/lab-ondas/actions/workflows/verificacion.yml)
 ![Sin dependencias](https://img.shields.io/badge/dependencias-ninguna-1f8a62?style=flat-square)
 ![Un solo fichero](https://img.shields.io/badge/un_solo-fichero_HTML-2f6fd0?style=flat-square)
 ![Comprobado](https://img.shields.io/badge/física-34_comprobaciones-8f5506?style=flat-square)
@@ -33,13 +34,14 @@ siempre. Este hace tres cosas que no suelen verse juntas:
 ## 🚀 Empezar
 
 ```bash
-git clone <este-repositorio>
+git clone https://github.com/USUARIO/lab-ondas.git
 cd lab-ondas
 # y ya está: doble clic en index.html
 ```
 
-Sin build, sin `npm install`, sin servidor. Para publicarlo, sube `index.html` a
-GitHub Pages o a cualquier directorio estático.
+Sin build, sin `npm install`, sin servidor. Para publicarlo tienes las
+instrucciones en [`deploy/`](deploy/README.md): GitHub Pages sin configurar nada,
+o un contenedor mínimo detrás de Nginx Proxy Manager.
 
 ## 🧭 Un recorrido de dos minutos
 
@@ -142,9 +144,11 @@ escrito. El panel de créditos de la aplicación los detalla.
 ## 📦 Estructura
 
 ```
-index.html          la aplicación entera
-tools/verify.mjs    comprobaciones de la física
-LICENSE.md          CC BY-SA 4.0
+index.html                    la aplicación entera
+tools/verify.mjs              comprobaciones de la física
+deploy/                       GitHub Pages y NAS con Nginx Proxy Manager
+.github/workflows/            la verificación se ejecuta en cada push
+LICENSE.md                    CC BY-SA 4.0
 ```
 
 Que sea un único fichero es deliberado: se puede pasar por correo, llevar en un

@@ -1,0 +1,21 @@
+name: Verificación de la física
+
+# Las comprobaciones leen las fórmulas directamente de index.html, así que
+# cualquier cambio que rompa la física hace fallar el build.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    name: Comprobar contra valores de libro
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Ejecutar las comprobaciones
+        run: node tools/verify.mjs
